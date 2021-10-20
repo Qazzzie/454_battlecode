@@ -3,6 +3,30 @@ package SaZaPraYi;
 import battlecode.common.*;
 
 public class Politician {
+
+    /*
+    This is the number of conviction unit that is lost from the available conviction
+    unit whenever a politician gives a speech.
+    (i.e. Whenever a politician gives a speech its 10 units are lost and only
+    remaining conviction units are distributed among listener robots.)
+    */
+    static final int CONVICTION_PENALTY = 10;
+
+    /*
+    This is the minimum number of rounds a politician waits before it starts to
+    convict its own team members even when there are no enemies present. This is
+    a randomly picked round number to start with, which can change as the game progresses.
+    */
+    static final int MINIMUM_ROUNDS_BEFORE_CONVICTION = 150;
+
+    /*
+    Politician can convict its own team after 150 rounds. We don't want the politicians to
+    perform conviction on its team member on all rounds. But convicting own team members
+    and influencing them increases their loyalty towards the team. So, after 150th round
+    of the game, politician tries to convict its team member, every 10th round.
+    */
+    static final int CONVICT_EVERY_N_ROUNDS = 10;
+
     private static RobotController rc;
     private static RobotUtils utils;
 
@@ -34,18 +58,17 @@ public class Politician {
         RobotInfo[] friendly = rc.senseNearbyRobots(actionRadius,friend);
         RobotInfo[] allrobots = rc.senseNearbyRobots(actionRadius);
 
-        int noofnearbyrobots = attackable.length + friendly.length;
-
-        int penaltyconviction = 10;
-        int initialconviction = rc.getConviction();
-        int useableconviction = 0;
-        if (noofnearbyrobots >0) {
-            useableconviction = (initialconviction - penaltyconviction) / noofnearbyrobots; //this usable conviction must be >0 to give speech
+        int noofNearbyRobots = attackable.length + friendly.length;
+        int initialConviction = rc.getConviction();
+        int useableConviction = 0;
+        if (noofNearbyRobots > 0) {
+            // usable conviction must be >0 to give a speech.
+            useableConviction = (initialConviction - CONVICTION_PENALTY) / noofNearbyRobots;
         }
 
         //empower when Neutral EC is nearby
         for (RobotInfo neutral: rc.senseNearbyRobots(actionRadius, neutralEC)){
-            if (useableconviction > 0 && rc.canEmpower(actionRadius)){
+            if (useableConviction > 0 && rc.canEmpower(actionRadius)){
                 System.out.println("empowering....");
                 rc.empower(actionRadius);
                 System.out.println("empowered");
@@ -53,9 +76,8 @@ public class Politician {
             }
         }
 
-
         //move towards enemy area to reduce their power when own power is less
-        if (initialconviction <= penaltyconviction){
+        if (useableConviction <= CONVICTION_PENALTY){
             // check/sense for enemy robots within radius and move towards their direction
             for (RobotInfo robot: rc.senseNearbyRobots(senseRadius, enemy)){
                 Direction enemy_location = rc.getLocation().directionTo(robot.location);
@@ -65,17 +87,17 @@ public class Politician {
             }
         }
 
-        // start giving speech once round reaches to 150+ even enemy is not found after every 10 round
-        // if enemy is detected try to convict them as well
-        // This makes politicians able to give speech only from round 150
-        if(attackable.length != 0 && rc.canEmpower(actionRadius) && useableconviction>0){
+        // Check if the number of enemies are present within attackable radius.
+        // If found check for own conviction value and if the value is greater than 10 empower enemies.
+        if(attackable.length != 0 && rc.canEmpower(actionRadius) && useableConviction > 0){
             System.out.println("empowering...");
             rc.empower(actionRadius);
             System.out.println("empowered");
             return;
         }
-        else if (rc.getRoundNum() >=150){
-            if(rc.getRoundNum()%10 == 0 && useableconviction>0 && rc.canEmpower(actionRadius)){
+        // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
+        else if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
+            if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && useableConviction > 0 && rc.canEmpower(actionRadius)){
                 System.out.println("empowering...");
                 rc.empower(actionRadius);
                 System.out.println("empowered");
@@ -93,6 +115,8 @@ public class Politician {
                 return;
             }
         */
+
+        // If none of the above conditions are satisfied allow Politicians to move in random directions.
         if (utils.tryMove(utils.randomDirection()))
             System.out.println("I moved!");
     }
