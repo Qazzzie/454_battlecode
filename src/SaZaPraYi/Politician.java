@@ -67,11 +67,13 @@ public class Politician {
         }
 
         //empower when Neutral EC is nearby
-        for (RobotInfo neutral: rc.senseNearbyRobots(actionRadius, neutralEC)){
-            if (useableConviction > 0 && rc.canEmpower(actionRadius)){
+        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
+            if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
                 System.out.println("empowering....");
                 rc.empower(actionRadius);
                 System.out.println("empowered");
+            } else {
+                utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
                 return;
             }
         }
