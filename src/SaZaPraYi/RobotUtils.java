@@ -180,13 +180,15 @@ public class RobotUtils {
             if (isTouchingTheWall()) {
                 toMove = toMove.opposite();
                 for (int i = 0; i < tilesToMoveAwayFromWall; i++) {
-                    if (tryMove(toMove))
-                        System.out.println("I moved!");
+                    tryMove(toMove);
+                    //if (tryMove(toMove))
+                    //    System.out.println("I moved!");
                 }
             } else {
                 // Otherwise move in the opposite-of-average direction
-                if (tryMove(toMove))
-                    System.out.println("I moved!");
+                tryMove(toMove);
+                //if (tryMove(toMove))
+                //    System.out.println("I moved!");
             }
         }
     }

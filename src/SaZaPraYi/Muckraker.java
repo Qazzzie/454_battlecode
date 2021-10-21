@@ -84,7 +84,7 @@ public class Muckraker {
 
                 // It's a slanderer... go get them
                 if (rc.canExpose(robot.location)) {
-                    System.out.println("e x p o s e d");
+                    //System.out.println("e x p o s e d");
                     rc.expose(robot.location);
 
 //                    //After exposing one slanderer, friend speech get conviction
@@ -118,13 +118,14 @@ public class Muckraker {
             if(robot.getType()== RobotType.POLITICIAN) {
                 Direction enemy_loc = rc.getLocation().directionTo(robot.location);
                 if (utils.tryMove(enemy_loc.opposite())) {
-                    System.out.println("Moving away from ");
+                    //System.out.println("Moving away from ");
                 }
             }
         }
 
-        if (utils.tryMove(utils.randomDirection()))
-            System.out.println("I moved!");
+        utils.tryMove(utils.randomDirection());
+        //if (utils.tryMove(utils.randomDirection()))
+        //    System.out.println("I moved!");
     }
 
     /**
