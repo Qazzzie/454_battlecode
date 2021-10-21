@@ -6,6 +6,44 @@ public class Muckraker {
     private static RobotController rc;
     private static RobotUtils utils;
 
+    // The location of our home base, set when spawned
+    private static MapLocation locationOfBase;
+
+    // The location of a convertable EC we found
+    private static MapLocation locationOfEC;
+
+    // True if we are heading back to base, false otherwise (grey EC logic)
+    private static boolean goingToBase;
+
+    // Turn where we got de-flagged (grey EC logic)
+    private static int turnOfCooldown;
+
+
+    // This is the number of nearby politicians a muckraker who
+    // found a grey EC should have around them before they start
+    // heading back to the location of the grey EC. Three politicians
+    // nearby seems good.
+    private static final int NUMBER_OF_POLITICIANS_NEEDED_BEFORE_RETURN_TO_EC = 3;
+
+
+    // How close to the EC should we be before we stop and go
+    // the other way?
+    private static final int DISTANCE_BEFORE_SWITCHING_DIRECTIONS = 4;
+
+    // If the distance to a politician is shorter than this, it's considered close
+    private static final int POLITICIAN_CONSIDERED_CLOSE_DISTANCE = 5;
+
+
+    // The number of rounds a Muckraker should wait after it's
+    // turned off the Grey EC color because there was another muckraker
+    // with that color near it. 100 rounds seems long enough for the
+    // other Muckraker to convert the EC.
+    private static final int EC_COOLDOWN = 100;
+
+    // The percent chance where a muckraker should de-flag if there's another
+    // muckraker nearby. Right now this is 50%
+    private static final double EC_DEFLAG_PERCENT_CHANCE = 0.5;
+
     /**
      * The constructor for the Muckraker controller object.
      *
@@ -25,7 +63,16 @@ public class Muckraker {
     public void run() throws GameActionException {
 
         Team enemy = rc.getTeam().opponent();
+        int senseRadius = rc.getType().sensorRadiusSquared;
         int actionRadius = rc.getType().actionRadiusSquared;
+
+        // If we don't have a home base location, we probably just got spawned,
+        // and there is probably one nearby, so let's set it.
+        if(locationOfBase == null)
+            for(RobotInfo robot : rc.senseNearbyRobots(senseRadius))
+                if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER)
+                    locationOfBase = robot.getLocation();
+
         for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {
             if (robot.type.canBeExposed()) {
 
@@ -52,6 +99,14 @@ public class Muckraker {
             }
         }
 
+        // If we aren't doing grey EC stuff, space out from other units.
+        if(rc.getFlag(rc.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal())
+            utils.moveAwayFromOtherUnits();
+
+        // Do grey EC logic. Return if that's what we should do
+        boolean shouldReturn = handleGreyECFollow();
+        if(shouldReturn) return;
+
         //Avoid politician
         for (RobotInfo robot: rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, enemy)){
             if(robot.getType()== RobotType.POLITICIAN) {
@@ -64,6 +119,87 @@ public class Muckraker {
 
         if (utils.tryMove(utils.randomDirection()))
             System.out.println("I moved!");
+    }
+
+    /**
+     * This function handles the logic for the convertable EC flag.
+     *
+     * @return true if we should return from run(), otherwise false.
+     * @throws GameActionException if anything in here should cause one
+     */
+    private boolean handleGreyECFollow() throws GameActionException {
+        Team player = rc.getTeam();
+        int senseRadius = rc.getType().sensorRadiusSquared;
+
+        int currentFlag = rc.getFlag(rc.getID());
+        if(currentFlag == RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
+            // Scan nearby friendly robots for Politicians and other muckrakers with a grey EC flag.
+            int numberOfNearbyFriendlyPoliticians = 0;
+            for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, player)) {
+
+                if(robot.getType() == RobotType.POLITICIAN)
+                    // If a friendly politician is close enough, add it to the number.
+                    if(rc.getLocation().distanceSquaredTo(robot.getLocation()) < POLITICIAN_CONSIDERED_CLOSE_DISTANCE)
+                        numberOfNearbyFriendlyPoliticians++;
+
+                // If there's a friendly muckraker nearby competing with us, de-flag with a percent chance.
+                if(robot.getType() == RobotType.MUCKRAKER
+                        && rc.getFlag(robot.getID()) == RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
+                    if(Math.random() < EC_DEFLAG_PERCENT_CHANCE) {
+                        // We should set our cooldown flag, and the turn we got de-flagged.
+                        rc.setFlag(RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal());
+                        turnOfCooldown = rc.getRoundNum();
+                        return false;
+                    }
+                }
+            }
+
+            // If we have enough politicians nearby, lets start going back to the grey EC.
+            if(numberOfNearbyFriendlyPoliticians > NUMBER_OF_POLITICIANS_NEEDED_BEFORE_RETURN_TO_EC) {
+                goingToBase = false;
+            }
+
+            // Move either towards the base or the grey EC
+            Direction toMove;
+            if(goingToBase) {
+                if(rc.getLocation().distanceSquaredTo(locationOfBase) < DISTANCE_BEFORE_SWITCHING_DIRECTIONS)
+                    goingToBase = false;
+                toMove = rc.getLocation().directionTo(locationOfBase);
+            } else {
+                // If we successfully converted the EC, turn back to a normal muckraker
+                if(rc.getLocation().distanceSquaredTo(locationOfEC) < senseRadius
+                        && rc.senseRobotAtLocation(locationOfEC).getTeam() == player) {
+                    rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
+                    return true;
+                }
+                if(rc.getLocation().distanceSquaredTo(locationOfEC) < DISTANCE_BEFORE_SWITCHING_DIRECTIONS)
+                    goingToBase = true;
+                toMove = rc.getLocation().directionTo(locationOfEC);
+            }
+            // Move in the direction we picked
+            utils.tryMove(toMove);
+            return true;
+        }
+
+        // If it's been long enough and we have a cooldown flag, go back to normal.
+        if(currentFlag == RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal()) {
+            if(rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN)
+                rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
+        }
+
+        // If there's a grey EC near us and we arent cooldowned, set our flag and head to base.
+        if(currentFlag == RobotUtils.flags.NOTHING.ordinal()) {
+            for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
+                if(robot.getTeam() == player) continue;
+                if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
+                    locationOfEC = robot.getLocation();
+                    rc.setFlag(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+                    goingToBase = true;
+                }
+            }
+
+        }
+        return false;
     }
 
 }

@@ -67,11 +67,13 @@ public class Politician {
         }
 
         //empower when Neutral EC is nearby
-        for (RobotInfo neutral: rc.senseNearbyRobots(actionRadius, neutralEC)){
-            if (useableConviction > 0 && rc.canEmpower(actionRadius)){
+        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
+            if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
                 System.out.println("empowering....");
                 rc.empower(actionRadius);
                 System.out.println("empowered");
+            } else {
+                utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
                 return;
             }
         }
@@ -95,8 +97,21 @@ public class Politician {
             System.out.println("empowered");
             return;
         }
+
+
+        // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
+        RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
+        if(muckrakerToFollow != null) {
+            // follow it
+            utils.tryMove(rc.getLocation().directionTo(muckrakerToFollow.getLocation()));
+            return;
+        }
+
+        // Move away from other friendly units
+        utils.moveAwayFromOtherUnits();
+
         // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
-        else if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
+        if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && useableConviction > 0 && rc.canEmpower(actionRadius)){
                 System.out.println("empowering...");
                 rc.empower(actionRadius);
@@ -119,6 +134,25 @@ public class Politician {
         // If none of the above conditions are satisfied allow Politicians to move in random directions.
         if (utils.tryMove(utils.randomDirection()))
             System.out.println("I moved!");
+    }
+
+    /**
+     * If there's a muckraker nearby that has a grey EC flag, return the RobotInfo object of
+     * it, otherwise this returns null.
+     *
+     * @return the RobotInfo object of a nearby muckraker that has a grey EC flag, otherwise null.
+     * @throws GameActionException if anything in here should cause one
+     */
+    private RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
+        int senseRadius = rc.getType().sensorRadiusSquared;
+        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
+            if(robot.getType() == RobotType.MUCKRAKER) {
+                if(rc.getFlag(robot.getID()) == RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
+                    return robot;
+                }
+            }
+        }
+        return null;
     }
 
 }
