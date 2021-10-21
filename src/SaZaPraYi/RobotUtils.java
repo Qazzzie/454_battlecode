@@ -101,6 +101,11 @@ public class RobotUtils {
         return null;
     }
 
+    /**
+     * Moves away from nearby friendly units.
+     *
+     * @throws GameActionException if anything here should cause one
+     */
     public void moveAwayFromOtherUnits() throws GameActionException{
         // The number of tiles we should move away from the wall if we
         // are adjacent to it. (in the muckflooder bot this is like 5)
