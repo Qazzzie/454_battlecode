@@ -18,6 +18,9 @@ public class Muckraker {
     // Turn where we got de-flagged (grey EC logic)
     private static int turnOfCooldown;
 
+    // This is the turn a muckraker started its grey EC quest.
+    private static int turnStartedGreyECQuest;
+
 
     // This is the number of nearby politicians a muckraker who
     // found a grey EC should have around them before they start
@@ -43,6 +46,9 @@ public class Muckraker {
     // The percent chance where a muckraker should de-flag if there's another
     // muckraker nearby. Right now this is 50%
     private static final double EC_DEFLAG_PERCENT_CHANCE = 0.5;
+
+    // After this many turns, a muckraker with the grey EC flag should deflag itself.
+    private static final int TURNS_BEFORE_SELF_DEFLAG = 400;
 
     /**
      * The constructor for the Muckraker controller object.
@@ -78,7 +84,7 @@ public class Muckraker {
 
                 // It's a slanderer... go get them
                 if (rc.canExpose(robot.location)) {
-                    System.out.println("e x p o s e d");
+                    //System.out.println("e x p o s e d");
                     rc.expose(robot.location);
 
 //                    //After exposing one slanderer, friend speech get conviction
@@ -112,13 +118,14 @@ public class Muckraker {
             if(robot.getType()== RobotType.POLITICIAN) {
                 Direction enemy_loc = rc.getLocation().directionTo(robot.location);
                 if (utils.tryMove(enemy_loc.opposite())) {
-                    System.out.println("Moving away from ");
+                    //System.out.println("Moving away from ");
                 }
             }
         }
 
-        if (utils.tryMove(utils.randomDirection()))
-            System.out.println("I moved!");
+        utils.tryMove(utils.randomDirection());
+        //if (utils.tryMove(utils.randomDirection()))
+        //    System.out.println("I moved!");
     }
 
     /**
@@ -133,6 +140,12 @@ public class Muckraker {
 
         int currentFlag = rc.getFlag(rc.getID());
         if(currentFlag == RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
+            // If we haven't finished our grey EC quest by a certain round, deflag.
+            // This prevents permanently stuck muckrakers and politicians.
+            if(rc.getRoundNum() > turnStartedGreyECQuest + TURNS_BEFORE_SELF_DEFLAG) {
+                rc.setFlag(RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal());
+                return false;
+            }
             // Scan nearby friendly robots for Politicians and other muckrakers with a grey EC flag.
             int numberOfNearbyFriendlyPoliticians = 0;
             for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, player)) {
@@ -194,6 +207,7 @@ public class Muckraker {
                 if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
                     locationOfEC = robot.getLocation();
                     rc.setFlag(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+                    turnStartedGreyECQuest = rc.getRoundNum();
                     goingToBase = true;
                 }
             }

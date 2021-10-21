@@ -27,6 +27,13 @@ public class Politician {
     */
     static final int CONVICT_EVERY_N_ROUNDS = 10;
 
+
+    /*
+    If a Politician is closer than this distance to a muckraker with a grey EC
+    flag, we try to move away from it by one tile.
+    */
+    private static final int DISTANCE_TOO_CLOSE_TO_MUCKRAKER = 3;
+
     private static RobotController rc;
     private static RobotUtils utils;
 
@@ -69,9 +76,9 @@ public class Politician {
         //empower when Neutral EC is nearby
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
-                System.out.println("empowering....");
+                //System.out.println("empowering....");
                 rc.empower(actionRadius);
-                System.out.println("empowered");
+                //System.out.println("empowered");
             } else {
                 utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
                 return;
@@ -82,9 +89,18 @@ public class Politician {
         if (useableConviction <= CONVICTION_PENALTY){
             // check/sense for enemy robots within radius and move towards their direction
             for (RobotInfo robot: rc.senseNearbyRobots(senseRadius, enemy)){
+                if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
+                    int distanceToEC = rc.getLocation().distanceSquaredTo(robot.getLocation());
+                    if(distanceToEC < actionRadius) {
+                        rc.empower(distanceToEC + 1);
+                    } else {
+                        utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
+                        return;
+                    }
+                }
                 Direction enemy_location = rc.getLocation().directionTo(robot.location);
                 if (utils.tryMove(enemy_location)){
-                    System.out.println("Moving towards enemy");
+                    //System.out.println("Moving towards enemy");
                 }
             }
         }
@@ -92,9 +108,9 @@ public class Politician {
         // Check if the number of enemies are present within attackable radius.
         // If found check for own conviction value and if the value is greater than 10 empower enemies.
         if(attackable.length != 0 && rc.canEmpower(actionRadius) && useableConviction > 0){
-            System.out.println("empowering...");
+            //System.out.println("empowering...");
             rc.empower(actionRadius);
-            System.out.println("empowered");
+            //System.out.println("empowered");
             return;
         }
 
@@ -103,7 +119,15 @@ public class Politician {
         RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
         if(muckrakerToFollow != null) {
             // follow it
-            utils.tryMove(rc.getLocation().directionTo(muckrakerToFollow.getLocation()));
+            MapLocation location = rc.getLocation();
+            MapLocation muckrakersLocation = muckrakerToFollow.getLocation();
+            Direction directionToMuckraker = location.directionTo(muckrakersLocation);
+            int distanceToMuckraker = location.distanceSquaredTo(muckrakersLocation);
+            utils.tryMove(directionToMuckraker);
+            // If we're too close to the muckraker, move away
+            if(distanceToMuckraker < DISTANCE_TOO_CLOSE_TO_MUCKRAKER) {
+                utils.tryMove(directionToMuckraker.opposite());
+            }
             return;
         }
 
@@ -113,9 +137,9 @@ public class Politician {
         // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
         if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && useableConviction > 0 && rc.canEmpower(actionRadius)){
-                System.out.println("empowering...");
+                //System.out.println("empowering...");
                 rc.empower(actionRadius);
-                System.out.println("empowered");
+                //System.out.println("empowered");
                 return;
             }
 
@@ -132,8 +156,9 @@ public class Politician {
         */
 
         // If none of the above conditions are satisfied allow Politicians to move in random directions.
-        if (utils.tryMove(utils.randomDirection()))
-            System.out.println("I moved!");
+        utils.tryMove(utils.randomDirection());
+        //if (utils.tryMove(utils.randomDirection()))
+         //   System.out.println("I moved!");
     }
 
     /**

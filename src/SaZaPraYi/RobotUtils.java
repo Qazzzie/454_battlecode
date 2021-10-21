@@ -39,20 +39,41 @@ public class RobotUtils {
     }
 
     /**
-     * Gets an array of eight possible directions.
-     *
-     * @return an array of eight possible directions.
-     */
-    public Direction[] getDirections() {
-        return directions;
-    }
-
-    /**
      * Returns a random Direction.
      *
      * @return a random Direction
      */
-    public Direction randomDirection() {
+    public Direction randomDirection() throws GameActionException {
+        MapLocation tile = rc.getLocation();
+
+        // Pick our random number up here
+        double randomNumber = Math.random();
+
+        // Gather all 8 potential locations into an ArrayList
+        ArrayList<MapLocation> potentialLocations = new ArrayList<>();
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) continue;
+                MapLocation temp = new MapLocation(tile.x + i, tile.y + j);
+                if (!rc.onTheMap(temp)) continue;
+                if (rc.senseRobotAtLocation(temp) != null) continue;
+                potentialLocations.add(temp);
+            }
+        }
+
+        // Shuffle the list.
+        Collections.shuffle(potentialLocations);
+
+        // For each tile in our shuffled list, we have a x% chance
+        // to pick it, and a 1 - x% chance to move to the next tile
+        // in the list.
+        for (MapLocation location : potentialLocations) {
+            double passability = rc.sensePassability(location);
+            if (randomNumber < passability) {
+                return rc.getLocation().directionTo(location);
+            }
+        }
+
         return directions[(int) (Math.random() * directions.length)];
     }
 
@@ -64,7 +85,7 @@ public class RobotUtils {
      * @throws GameActionException
      */
     boolean tryMove(Direction dir) throws GameActionException {
-        System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " " + rc.canMove(dir));
+        //System.out.println("I am trying to move " + dir + "; " + rc.isReady() + " " + rc.getCooldownTurns() + " " + rc.canMove(dir));
         if (rc.canMove(dir)) {
             rc.move(dir);
             return true;
@@ -99,6 +120,24 @@ public class RobotUtils {
         }
         // If there isn't any nearby tiles, return null
         return null;
+    }
+
+    /**
+     * Returns true or false whether or not the robot is touching the wall
+     *
+     * @return true if touching the wall, false if not.
+     * @throws GameActionException if anything would cause one
+     */
+    public boolean isTouchingTheWall() throws GameActionException {
+        MapLocation tile = rc.getLocation();
+        for(int i = -1; i <= 1; i++) {
+            for(int j = -1; j <= 1; j++) {
+                if(j == 0 && i == 0) continue; // This would be the tile itself...
+                MapLocation temp = new MapLocation(tile.x + i, tile.y + j);
+                if (!rc.onTheMap(temp)) return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -138,16 +177,18 @@ public class RobotUtils {
 
             // If we are touching a wall, move away from it.
             // Before I added this, the units were all sticking to the wall
-            if (!rc.onTheMap(rc.adjacentLocation(toMove))) {
+            if (isTouchingTheWall()) {
                 toMove = toMove.opposite();
                 for (int i = 0; i < tilesToMoveAwayFromWall; i++) {
-                    if (tryMove(toMove))
-                        System.out.println("I moved!");
+                    tryMove(toMove);
+                    //if (tryMove(toMove))
+                    //    System.out.println("I moved!");
                 }
             } else {
                 // Otherwise move in the opposite-of-average direction
-                if (tryMove(toMove))
-                    System.out.println("I moved!");
+                tryMove(toMove);
+                //if (tryMove(toMove))
+                //    System.out.println("I moved!");
             }
         }
     }
