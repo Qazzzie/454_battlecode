@@ -123,6 +123,24 @@ public class RobotUtils {
     }
 
     /**
+     * Returns true or false whether or not the robot is touching the wall
+     *
+     * @return true if touching the wall, false if not.
+     * @throws GameActionException if anything would cause one
+     */
+    public boolean isTouchingTheWall() throws GameActionException {
+        MapLocation tile = rc.getLocation();
+        for(int i = -1; i <= 1; i++) {
+            for(int j = -1; j <= 1; j++) {
+                if(j == 0 && i == 0) continue; // This would be the tile itself...
+                MapLocation temp = new MapLocation(tile.x + i, tile.y + j);
+                if (!rc.onTheMap(temp)) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Moves away from nearby friendly units.
      *
      * @throws GameActionException if anything here should cause one
@@ -159,7 +177,7 @@ public class RobotUtils {
 
             // If we are touching a wall, move away from it.
             // Before I added this, the units were all sticking to the wall
-            if (!rc.onTheMap(rc.adjacentLocation(toMove))) {
+            if (isTouchingTheWall()) {
                 toMove = toMove.opposite();
                 for (int i = 0; i < tilesToMoveAwayFromWall; i++) {
                     if (tryMove(toMove))
