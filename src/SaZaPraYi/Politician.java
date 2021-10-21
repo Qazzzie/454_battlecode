@@ -27,6 +27,13 @@ public class Politician {
     */
     static final int CONVICT_EVERY_N_ROUNDS = 10;
 
+
+    /*
+    If a Politician is closer than this distance to a muckraker with a grey EC
+    flag, we try to move away from it by one tile.
+    */
+    private static final int DISTANCE_TOO_CLOSE_TO_MUCKRAKER = 3;
+
     private static RobotController rc;
     private static RobotUtils utils;
 
@@ -103,7 +110,15 @@ public class Politician {
         RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
         if(muckrakerToFollow != null) {
             // follow it
-            utils.tryMove(rc.getLocation().directionTo(muckrakerToFollow.getLocation()));
+            MapLocation location = rc.getLocation();
+            MapLocation muckrakersLocation = muckrakerToFollow.getLocation();
+            Direction directionToMuckraker = location.directionTo(muckrakersLocation);
+            int distanceToMuckraker = location.distanceSquaredTo(muckrakersLocation);
+            utils.tryMove(directionToMuckraker);
+            // If we're too close to the muckraker, move away
+            if(distanceToMuckraker < DISTANCE_TOO_CLOSE_TO_MUCKRAKER) {
+                utils.tryMove(directionToMuckraker.opposite());
+            }
             return;
         }
 
