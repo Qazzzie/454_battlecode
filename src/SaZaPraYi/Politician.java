@@ -77,7 +77,7 @@ public class Politician {
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
                 //System.out.println("empowering....");
-                rc.empower(actionRadius);
+                if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
                 //System.out.println("empowered");
             } else {
                 utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
@@ -92,7 +92,7 @@ public class Politician {
                 if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
                     int distanceToEC = rc.getLocation().distanceSquaredTo(robot.getLocation());
                     if(distanceToEC < actionRadius) {
-                        rc.empower(distanceToEC + 1);
+                        if(rc.canEmpower(distanceToEC + 1)) rc.empower(distanceToEC + 1);
                     } else {
                         utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
                         return;
@@ -109,7 +109,7 @@ public class Politician {
         // If found check for own conviction value and if the value is greater than 10 empower enemies.
         if(attackable.length != 0 && rc.canEmpower(actionRadius) && useableConviction > 0){
             //System.out.println("empowering...");
-            rc.empower(actionRadius);
+            if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
             //System.out.println("empowered");
             return;
         }
@@ -138,7 +138,7 @@ public class Politician {
         if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && useableConviction > 0 && rc.canEmpower(actionRadius)){
                 //System.out.println("empowering...");
-                rc.empower(actionRadius);
+                if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
                 //System.out.println("empowered");
                 return;
             }
