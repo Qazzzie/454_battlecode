@@ -72,18 +72,18 @@ public class EnlightenmentCenter {
     probably be adjusted (as well as getBidAmount function
     itself). Before round 300, no voting is done.
      */
-    static final int ROUNDS_BEFORE_START_VOTING = 500;
+    static final int ROUNDS_BEFORE_START_VOTING = 300;
 
     /*
     The number of rounds we should wait before having a "big vote" again.
     When this is 5, "big vote" every 5th round.
      */
-    static final int VOTE_BIG_EVERY_N_ROUNDS = 5;
+    static final int VOTE_BIG_EVERY_N_ROUNDS = 4;
 
     /*
     When we have a "BIG VOTE", increase our influence to bid by this ratio
      */
-    static final double BIG_VOTE_RATIO = 2;
+    static final double BIG_VOTE_RATIO = 1.6;
 
     /*
     When spawning a Politician to defend, add an additional
@@ -217,6 +217,7 @@ public class EnlightenmentCenter {
         int influenceToSpendOnBid = (int) (currentInfluence * bidRatio);
         // Should we have a BIG VOTE this round..?
         if (turnCount % VOTE_BIG_EVERY_N_ROUNDS == 0) influenceToSpendOnBid *= BIG_VOTE_RATIO;
+        influenceToSpendOnBid = Math.min(influenceToSpendOnBid, currentInfluence - 1);
         if (turnCount > ROUNDS_BEFORE_START_VOTING)
             rc.bid(influenceToSpendOnBid);
     }
@@ -234,8 +235,8 @@ public class EnlightenmentCenter {
         // TODO: find an absolutely perfect bid function that makes mathematicians cry tears of joy.
         double x = turnNumber / 1500.0;
         // function i came up with: (4x^(0.7e+1))/5, at 1500 it is around 80%
-        double dampener = 0.8; // TODO: remove this, this is just a temporary dampener
-        return ((4.0 * Math.pow(x, 0.7 * Math.exp(1.0) + 1.0)) / 5.0) * dampener;
+        //double dampener = 0.8; // TODO: remove this, this is just a temporary dampener
+        return ((4.0 * Math.pow(x, 0.7 * Math.exp(1.0) + 1.0)) / 5.0);
     }
 
     /**
