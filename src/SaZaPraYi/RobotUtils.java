@@ -39,20 +39,41 @@ public class RobotUtils {
     }
 
     /**
-     * Gets an array of eight possible directions.
-     *
-     * @return an array of eight possible directions.
-     */
-    public Direction[] getDirections() {
-        return directions;
-    }
-
-    /**
      * Returns a random Direction.
      *
      * @return a random Direction
      */
-    public Direction randomDirection() {
+    public Direction randomDirection() throws GameActionException {
+        MapLocation tile = rc.getLocation();
+
+        // Pick our random number up here
+        double randomNumber = Math.random();
+
+        // Gather all 8 potential locations into an ArrayList
+        ArrayList<MapLocation> potentialLocations = new ArrayList<>();
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                if (i == 0 && j == 0) continue;
+                MapLocation temp = new MapLocation(tile.x + i, tile.y + j);
+                if (!rc.onTheMap(temp)) continue;
+                if (rc.senseRobotAtLocation(temp) != null) continue;
+                potentialLocations.add(temp);
+            }
+        }
+
+        // Shuffle the list.
+        Collections.shuffle(potentialLocations);
+
+        // For each tile in our shuffled list, we have a x% chance
+        // to pick it, and a 1 - x% chance to move to the next tile
+        // in the list.
+        for (MapLocation location : potentialLocations) {
+            double passability = rc.sensePassability(location);
+            if (randomNumber < passability) {
+                return rc.getLocation().directionTo(location);
+            }
+        }
+
         return directions[(int) (Math.random() * directions.length)];
     }
 
