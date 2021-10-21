@@ -33,12 +33,12 @@ public class Slanderer {
 
         // Move away from sensed enemies.
         if(rc.senseNearbyRobots(sensorRadiusSquared, rc.getTeam().opponent()).length!=0) {
-            System.out.println("Enemy sensed");
+            //System.out.println("Enemy sensed");
             enemy_spotted = true;
             for (RobotInfo enemy_i : rc.senseNearbyRobots(sensorRadiusSquared, rc.getTeam().opponent())) {
                 Direction away_from_enemy_i = rc.getLocation().directionTo(enemy_i.location).opposite();
                 if (utils.tryMove(away_from_enemy_i)) {
-                    System.out.println("Moving away from enemy");
+                    //System.out.println("Moving away from enemy");
                 }
                 else normalMove();
             }
@@ -52,10 +52,12 @@ public class Slanderer {
         Direction to_move = utils.randomDirection();
         if (!rc.onTheMap(rc.adjacentLocation(to_move))) {
             to_move = to_move.opposite();
-            if (utils.tryMove(to_move))
-                System.out.println("I moved away from the edge!");
-        } else if (utils.tryMove(to_move))
-            System.out.println("I moved randomly!");
+            utils.tryMove(to_move);
+            //if (utils.tryMove(to_move))
+                //System.out.println("I moved away from the edge!");
+        } else {utils.tryMove(to_move);}
+        //} else if (utils.tryMove(to_move))
+        //    System.out.println("I moved randomly!");
     }
 }
 
