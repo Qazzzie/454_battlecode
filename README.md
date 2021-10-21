@@ -1,4 +1,4 @@
-# Battlecode 2021 Scaffold
+# SaZaPraYi
 
 This is the Battlecode 2021 scaffold, containing an `examplefuncsplayer`. Read https://2021.battlecode.org/getting-started!
 
