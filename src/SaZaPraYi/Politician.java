@@ -97,8 +97,19 @@ public class Politician {
             System.out.println("empowered");
             return;
         }
+
+
+        RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
+        if(muckrakerToFollow != null) {
+            // follow it
+            utils.tryMove(rc.getLocation().directionTo(muckrakerToFollow.getLocation()));
+            return;
+        }
+
+        utils.moveAwayFromOtherUnits();
+
         // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
-        else if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
+        if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && useableConviction > 0 && rc.canEmpower(actionRadius)){
                 System.out.println("empowering...");
                 rc.empower(actionRadius);
@@ -121,6 +132,18 @@ public class Politician {
         // If none of the above conditions are satisfied allow Politicians to move in random directions.
         if (utils.tryMove(utils.randomDirection()))
             System.out.println("I moved!");
+    }
+
+    private RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
+        int senseRadius = rc.getType().sensorRadiusSquared;
+        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
+            if(robot.getType() == RobotType.MUCKRAKER) {
+                if(rc.getFlag(robot.getID()) == RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
+                    return robot;
+                }
+            }
+        }
+        return null;
     }
 
 }

@@ -3,6 +3,7 @@ package SaZaPraYi;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class RobotUtils {
@@ -19,6 +20,12 @@ public class RobotUtils {
             Direction.WEST,
             Direction.NORTHWEST,
     };
+
+    public enum flags {
+        NOTHING,
+        MUCKRAKER_FOUND_GREY_EC,
+        MUCKRAKER_EC_COOLDOWN
+    }
 
 
     /**
@@ -92,5 +99,51 @@ public class RobotUtils {
         }
         // If there isn't any nearby tiles, return null
         return null;
+    }
+
+    public void moveAwayFromOtherUnits() throws GameActionException{
+        // The number of tiles we should move away from the wall if we
+        // are adjacent to it. (in the muckflooder bot this is like 5)
+        int tilesToMoveAwayFromWall = 2;
+
+        // location, radius, team variables
+        MapLocation tile = rc.getLocation();
+        int senseRadius = rc.getType().sensorRadiusSquared;
+        Team playerTeam = rc.getTeam();
+
+        // A list of nearby friendly units.
+        ArrayList<RobotInfo> nearbyFriendlyUnits =
+                new ArrayList<>(Arrays.asList(rc.senseNearbyRobots(senseRadius, playerTeam)));
+
+        // We want to get the average location of all nearby friendly units.
+        int avgX = 0, avgY = 0;
+        if (nearbyFriendlyUnits.size() > 0) {
+            for (RobotInfo robot : nearbyFriendlyUnits) {
+                MapLocation position = robot.getLocation();
+                avgX += position.x;
+                avgY += position.y;
+            }
+            avgX /= nearbyFriendlyUnits.size();
+            avgY /= nearbyFriendlyUnits.size();
+            MapLocation averagePosition = new MapLocation(avgX, avgY);
+
+            // Now that we have the average position of nearby friendly units,
+            // we want to move in the opposite direction of that location.
+            Direction toMove = tile.directionTo(averagePosition).opposite();
+
+            // If we are touching a wall, move away from it.
+            // Before I added this, the units were all sticking to the wall
+            if (!rc.onTheMap(rc.adjacentLocation(toMove))) {
+                toMove = toMove.opposite();
+                for (int i = 0; i < tilesToMoveAwayFromWall; i++) {
+                    if (tryMove(toMove))
+                        System.out.println("I moved!");
+                }
+            } else {
+                // Otherwise move in the opposite-of-average direction
+                if (tryMove(toMove))
+                    System.out.println("I moved!");
+            }
+        }
     }
 }
