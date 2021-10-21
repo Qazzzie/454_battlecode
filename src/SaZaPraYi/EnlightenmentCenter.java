@@ -14,14 +14,14 @@ public class EnlightenmentCenter {
     of slanderers is less than this ratio, it spawns a new one.
     This right now is 0.2f, or 20%. This may be a little high...
      */
-    static final double DESIRED_SLANDERER_RATIO = 0.2;
+    static final double DESIRED_SLANDERER_RATIO = 0.05;
 
     /*
     POLITICIAN_SPAWN_PERCENTAGE is the percent chance a Politician
     should be chosen to be spawned. Currently, it's 60%. If a Politician
     isn't chosen, a Muckraker is chosen.
      */
-    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.6;
+    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.5;
 
     /*
     This is the minimum number of slanderers that should be around
@@ -29,7 +29,7 @@ public class EnlightenmentCenter {
     slanderer, UNLESS the EC senses that it is under attack
     (because then it will spawn Politicians to defend)
      */
-    static final int MINIMUM_SLANDERERS = 5;
+    static final int MINIMUM_SLANDERERS = 10;
 
     /*
     This is the minimum amount of influence that the EC should
@@ -37,7 +37,13 @@ public class EnlightenmentCenter {
     rules, Politicians with less than 10 influence will just
     explode without doing anything when they empower.
      */
-    static final int MINIMUM_UNIT_INFLUENCE = 10;
+    static final int MINIMUM_POLITICIAN_UNIT_INFLUENCE = 60;
+
+    /*
+    This is the minimum amount of influence that the EC should
+    spend on a slanderer.
+     */
+    static final int MINIMUM_SLANDERER_UNIT_INFLUENCE = 40;
 
     /*
     This is the number of rounds before the EC should start
@@ -45,13 +51,18 @@ public class EnlightenmentCenter {
     probably be adjusted (as well as getBidAmount function
     itself). Before round 300, no voting is done.
      */
-    static final int ROUNDS_BEFORE_START_VOTING = 50;
+    static final int ROUNDS_BEFORE_START_VOTING = 500;
 
     /*
-    The number of rounds we should wait before voting again.
-    When this is 5, vote every 5th round.
+    The number of rounds we should wait before having a "big vote" again.
+    When this is 5, "big vote" every 5th round.
      */
-    static final int VOTE_EVERY_N_ROUNDS = 5;
+    static final int VOTE_BIG_EVERY_N_ROUNDS = 5;
+
+    /*
+    When we have a "BIG VOTE", increase our influence to bid by this ratio
+     */
+    static final double BIG_VOTE_RATIO = 2;
 
     /*
     When spawning a Politician to defend, add an additional
@@ -85,8 +96,7 @@ public class EnlightenmentCenter {
     public void run() throws GameActionException {
         // Build robots
         buildRobots();
-        // If it's a vote round, we vote
-        if(rc.getRoundNum() % VOTE_EVERY_N_ROUNDS == 0) bid();
+        bid();
     }
 
     /**
@@ -115,8 +125,13 @@ public class EnlightenmentCenter {
             else nearbyGreyRobots.add(robot);
         }
 
+        if(nearbyGreyRobots.size() > 0) {
+            robotTypeToBuild = RobotType.POLITICIAN;
+            influenceToSpendOnUnit = nearbyGreyRobots.get(0).conviction;
+        }
+
         // If there's enemies nearby, spawn a Politician defender
-        if(nearbyEnemyRobots.size() > 0 || nearbyGreyRobots.size() > 0) {
+        else if(nearbyEnemyRobots.size() > 0) {
             robotTypeToBuild = RobotType.POLITICIAN;
             int totalConvictionOfNearbyEnemyUnits = 0;
             for(RobotInfo enemy : nearbyEnemyRobots) {
@@ -125,6 +140,8 @@ public class EnlightenmentCenter {
             int averageConviction = totalConvictionOfNearbyEnemyUnits / nearbyEnemyRobots.size();
             influenceToSpendOnUnit =
                         totalConvictionOfNearbyEnemyUnits + (averageConviction * DEFENDER_ADDITIONAL_UNIT_BUFFER);
+            // The influence to spend on a defender Politician should be at least the minimum influence.
+            influenceToSpendOnUnit = Math.max(influenceToSpendOnUnit, MINIMUM_POLITICIAN_UNIT_INFLUENCE);
         // Otherwise, spawn units as normal
         } else {
             // If we don't have enough slanderers, spawn one
@@ -137,15 +154,24 @@ public class EnlightenmentCenter {
             if(currentSlandererToTotalUnitRatio < DESIRED_SLANDERER_RATIO
                     || currentNumberOfNearbySlanderers < MINIMUM_SLANDERERS) {
                 robotTypeToBuild = RobotType.SLANDERER;
-                influenceToSpendOnUnit = 100; //TODO: change this
+                influenceToSpendOnUnit = MINIMUM_SLANDERER_UNIT_INFLUENCE;
+                influenceToSpendOnUnit += rc.getInfluence() * 0.5; // TODO fix this
             // Otherwise, spawn a Politician or Muckraker
             } else {
                 robotTypeToBuild = randomSpawnableRobotType();
-                influenceToSpendOnUnit = 100; //TODO: change this
+                switch(robotTypeToBuild) {
+                    case MUCKRAKER:
+                        influenceToSpendOnUnit = 1;
+                        break;
+                    case POLITICIAN:
+                    default:
+                        influenceToSpendOnUnit = MINIMUM_POLITICIAN_UNIT_INFLUENCE;
+                        influenceToSpendOnUnit += rc.getInfluence() * 0.5; // TODO fix this
+                        break;
+                }
             }
         }
         // Actually spawn the robot
-        if(influenceToSpendOnUnit < MINIMUM_UNIT_INFLUENCE) return;
         Direction directionToPlace = utils.getDirectionOfRandomAdjacentEmptyTile(rc.getLocation());
         if(directionToPlace != null) {
             if(rc.canBuildRobot(robotTypeToBuild, directionToPlace, influenceToSpendOnUnit)) {
@@ -165,6 +191,8 @@ public class EnlightenmentCenter {
         int turnCount = rc.getRoundNum();
         double bidRatio = getBidRatio(turnCount);
         int influenceToSpendOnBid = (int) (currentInfluence * bidRatio);
+        // Should we have a BIG VOTE this round..?
+        if (turnCount % VOTE_BIG_EVERY_N_ROUNDS == 0) influenceToSpendOnBid *= BIG_VOTE_RATIO;
         if (turnCount > ROUNDS_BEFORE_START_VOTING)
             rc.bid(influenceToSpendOnBid);
     }
@@ -182,8 +210,8 @@ public class EnlightenmentCenter {
         // TODO: find an absolutely perfect bid function that makes mathematicians cry tears of joy.
         double x = turnNumber / 1500.0;
         // function i came up with: (4x^(0.7e+1))/5, at 1500 it is around 80%
-        return Math.pow(x - 0.7, 5) + Math.pow(x - 0.2, 3) + 0.2;
-        //return ((4.0 * Math.pow(x, 0.7 * Math.exp(1.0) + 1.0)) / 5.0);
+        double dampener = 0.8; // TODO: remove this, this is just a temporary dampener
+        return ((4.0 * Math.pow(x, 0.7 * Math.exp(1.0) + 1.0)) / 5.0) * dampener;
     }
 
     /**
