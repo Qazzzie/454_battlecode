@@ -217,7 +217,9 @@ public class EnlightenmentCenter {
         int influenceToSpendOnBid = (int) (currentInfluence * bidRatio);
         // Should we have a BIG VOTE this round..?
         if (turnCount % VOTE_BIG_EVERY_N_ROUNDS == 0) influenceToSpendOnBid *= BIG_VOTE_RATIO;
-        influenceToSpendOnBid = Math.min(influenceToSpendOnBid, currentInfluence - 1);
+        influenceToSpendOnBid = Math.min(influenceToSpendOnBid, currentInfluence);
+        // This prevents spending a negative amount on a bid
+        if(influenceToSpendOnBid <= 0) return;
         if (turnCount > ROUNDS_BEFORE_START_VOTING)
             rc.bid(influenceToSpendOnBid);
     }
