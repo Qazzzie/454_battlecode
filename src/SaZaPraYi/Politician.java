@@ -99,6 +99,7 @@ public class Politician {
         }
 
 
+        // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
         RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
         if(muckrakerToFollow != null) {
             // follow it
@@ -106,6 +107,7 @@ public class Politician {
             return;
         }
 
+        // Move away from other friendly units
         utils.moveAwayFromOtherUnits();
 
         // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
@@ -134,6 +136,13 @@ public class Politician {
             System.out.println("I moved!");
     }
 
+    /**
+     * If there's a muckraker nearby that has a grey EC flag, return the RobotInfo object of
+     * it, otherwise this returns null.
+     *
+     * @return the RobotInfo object of a nearby muckraker that has a grey EC flag, otherwise null.
+     * @throws GameActionException if anything in here should cause one
+     */
     private RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
         int senseRadius = rc.getType().sensorRadiusSquared;
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
