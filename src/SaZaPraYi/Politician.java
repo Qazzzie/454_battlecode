@@ -89,6 +89,15 @@ public class Politician {
         if (useableConviction <= CONVICTION_PENALTY){
             // check/sense for enemy robots within radius and move towards their direction
             for (RobotInfo robot: rc.senseNearbyRobots(senseRadius, enemy)){
+                if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
+                    int distanceToEC = rc.getLocation().distanceSquaredTo(robot.getLocation());
+                    if(distanceToEC < actionRadius) {
+                        rc.empower(distanceToEC + 1);
+                    } else {
+                        utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
+                        return;
+                    }
+                }
                 Direction enemy_location = rc.getLocation().directionTo(robot.location);
                 if (utils.tryMove(enemy_location)){
                     System.out.println("Moving towards enemy");

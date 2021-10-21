@@ -206,6 +206,7 @@ public class Muckraker {
                 if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
                     locationOfEC = robot.getLocation();
                     rc.setFlag(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+                    turnStartedGreyECQuest = rc.getRoundNum();
                     goingToBase = true;
                 }
             }

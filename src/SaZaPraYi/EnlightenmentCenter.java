@@ -21,7 +21,7 @@ public class EnlightenmentCenter {
     should be chosen to be spawned. Currently, it's 60%. If a Politician
     isn't chosen, a Muckraker is chosen.
      */
-    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.5;
+    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.2;
 
     /*
     This is the minimum number of slanderers that should be around
@@ -37,13 +37,34 @@ public class EnlightenmentCenter {
     rules, Politicians with less than 10 influence will just
     explode without doing anything when they empower.
      */
-    static final int MINIMUM_POLITICIAN_UNIT_INFLUENCE = 60;
+    static final int MINIMUM_POLITICIAN_UNIT_INFLUENCE = 80;
 
     /*
     This is the minimum amount of influence that the EC should
     spend on a slanderer.
      */
     static final int MINIMUM_SLANDERER_UNIT_INFLUENCE = 40;
+
+    /*
+    This is the minimum amount of influence that the EC should
+    spend on a muckraker.
+    */
+    private static final int MINIMUM_MUCKRAKER_UNIT_INFLUENCE = 1;
+
+    /*
+    Ratio used to make slanderers bigger based on current influence
+     */
+    static final double NORMAL_SLANDERER_INFLUENCE_RATIO = 0.75;
+
+    /*
+    Ratio used to make politicians bigger based on current influence
+     */
+    static final double NORMAL_POLITICIAN_INFLUENCE_RATIO = 0.75;
+
+    /*
+    Ratio used to make muckrakers bigger based on current influence
+     */
+    static final double NORMAL_MUCKRAKER_INFLUENCE_RATIO = 0.03;
 
     /*
     This is the number of rounds before the EC should start
@@ -128,6 +149,8 @@ public class EnlightenmentCenter {
         if(nearbyGreyRobots.size() > 0) {
             robotTypeToBuild = RobotType.POLITICIAN;
             influenceToSpendOnUnit = nearbyGreyRobots.get(0).conviction;
+            // The influence to spend on a Politician should be at least the minimum influence.
+            influenceToSpendOnUnit = Math.max(influenceToSpendOnUnit, MINIMUM_POLITICIAN_UNIT_INFLUENCE);
         }
 
         // If there's enemies nearby, spawn a Politician defender
@@ -155,18 +178,19 @@ public class EnlightenmentCenter {
                     || currentNumberOfNearbySlanderers < MINIMUM_SLANDERERS) {
                 robotTypeToBuild = RobotType.SLANDERER;
                 influenceToSpendOnUnit = MINIMUM_SLANDERER_UNIT_INFLUENCE;
-                influenceToSpendOnUnit += rc.getInfluence() * 0.5; // TODO fix this
+                influenceToSpendOnUnit += rc.getInfluence() * NORMAL_SLANDERER_INFLUENCE_RATIO; // TODO fix this
             // Otherwise, spawn a Politician or Muckraker
             } else {
                 robotTypeToBuild = randomSpawnableRobotType();
                 switch(robotTypeToBuild) {
                     case MUCKRAKER:
-                        influenceToSpendOnUnit = 1;
+                        influenceToSpendOnUnit = MINIMUM_MUCKRAKER_UNIT_INFLUENCE;
+                        influenceToSpendOnUnit += rc.getInfluence() * NORMAL_MUCKRAKER_INFLUENCE_RATIO; // TODO fix this
                         break;
                     case POLITICIAN:
                     default:
                         influenceToSpendOnUnit = MINIMUM_POLITICIAN_UNIT_INFLUENCE;
-                        influenceToSpendOnUnit += rc.getInfluence() * 0.5; // TODO fix this
+                        influenceToSpendOnUnit += rc.getInfluence() * NORMAL_POLITICIAN_INFLUENCE_RATIO; // TODO fix this
                         break;
                 }
             }
