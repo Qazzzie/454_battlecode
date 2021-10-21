@@ -1,24 +1,25 @@
-package examplefuncsplayer;
+package bidbot;
+
 import battlecode.common.*;
 
 public strictfp class RobotPlayer {
     static RobotController rc;
 
     static final RobotType[] spawnableRobot = {
-        RobotType.POLITICIAN,
-        RobotType.SLANDERER,
-        RobotType.MUCKRAKER,
+            RobotType.POLITICIAN,
+            RobotType.SLANDERER,
+            RobotType.MUCKRAKER,
     };
 
     static final Direction[] directions = {
-        Direction.NORTH,
-        Direction.NORTHEAST,
-        Direction.EAST,
-        Direction.SOUTHEAST,
-        Direction.SOUTH,
-        Direction.SOUTHWEST,
-        Direction.WEST,
-        Direction.NORTHWEST,
+            Direction.NORTH,
+            Direction.NORTHEAST,
+            Direction.EAST,
+            Direction.SOUTHEAST,
+            Direction.SOUTH,
+            Direction.SOUTHWEST,
+            Direction.WEST,
+            Direction.NORTHWEST,
     };
 
     static int turnCount;
@@ -45,10 +46,18 @@ public strictfp class RobotPlayer {
                 // You may rewrite this into your own control structure if you wish.
                 System.out.println("I'm a " + rc.getType() + "! Location " + rc.getLocation());
                 switch (rc.getType()) {
-                    case ENLIGHTENMENT_CENTER: runEnlightenmentCenter(); break;
-                    case POLITICIAN:           runPolitician();          break;
-                    case SLANDERER:            runSlanderer();           break;
-                    case MUCKRAKER:            runMuckraker();           break;
+                    case ENLIGHTENMENT_CENTER:
+                        runEnlightenmentCenter();
+                        break;
+                    case POLITICIAN:
+                        runPolitician();
+                        break;
+                    case SLANDERER:
+                        runSlanderer();
+                        break;
+                    case MUCKRAKER:
+                        runMuckraker();
+                        break;
                 }
 
                 // Clock.yield() makes the robot wait until the next turn, then it will perform this loop again
@@ -62,32 +71,65 @@ public strictfp class RobotPlayer {
     }
 
     static void runEnlightenmentCenter() throws GameActionException {
-        RobotType toBuild = randomSpawnableRobotType();
-        int influence = 50;
+
+        // Bid 50% of our current influence at the start of the round.
+        int bid_amount = (int) (rc.getInfluence() * 0.50);
+        rc.bid(bid_amount);
+
+        // variables for buliding our robot
+        RobotType to_build;
+        int amount_to_spend;
+
+        // Roll a random value to pick the kind of robot to spawn:w
+        double random_value = Math.random();
+        if (random_value < 0.70) {
+            // Spawn a slanderer with a 70% chance
+            to_build = RobotType.SLANDERER;
+            // Spend 20% of our current influence on a slanderer
+            amount_to_spend = (int) (rc.getInfluence() * 0.2);
+        } else if (random_value < 0.87) {
+            // Spawn a muckraker with a 17% chance
+            to_build = RobotType.MUCKRAKER;
+            // Spend 10% of our current influence on a muckraker
+            amount_to_spend = (int) (rc.getInfluence() * 0.1);
+        } else {
+            // Spawn a muckraker with a 13% chance
+            to_build = RobotType.POLITICIAN;
+            // Spend 10% of our current influence on a politician
+            amount_to_spend = (int) (rc.getInfluence() * 0.1);
+        }
+
+        // Actually spawn our units
         for (Direction dir : directions) {
-            if (rc.canBuildRobot(toBuild, dir, influence)) {
-                rc.buildRobot(toBuild, dir, influence);
+            MapLocation tile_to_place = rc.adjacentLocation(dir);
+            if (!rc.onTheMap(tile_to_place) || rc.senseRobotAtLocation(tile_to_place) != null) continue;
+            if (rc.canBuildRobot(to_build, dir, amount_to_spend)) {
+                rc.buildRobot(to_build, dir, amount_to_spend);
             } else {
                 break;
             }
         }
     }
 
+
     static void runPolitician() throws GameActionException {
-        Team enemy = rc.getTeam().opponent();
         int actionRadius = rc.getType().actionRadiusSquared;
-        RobotInfo[] attackable = rc.senseNearbyRobots(actionRadius, enemy);
-        if (attackable.length != 0 && rc.canEmpower(actionRadius)) {
-            System.out.println("empowering...");
-            rc.empower(actionRadius);
-            System.out.println("empowered");
-            return;
+        for (RobotInfo robot : rc.senseNearbyRobots(actionRadius)) {
+            // If we are next to a non-friendly robot, empower.
+            // This includes grey ECs
+            if (robot.getTeam() != rc.getTeam()) {
+                rc.empower(actionRadius);
+            }
         }
         if (tryMove(randomDirection()))
             System.out.println("I moved!");
-
-
     }
+
+    /*
+    ============================================================
+    Everything below is the same as examplefuncsplayer (i think)
+    ============================================================
+     */
 
     static void runSlanderer() throws GameActionException {
         if (tryMove(randomDirection()))
@@ -118,15 +160,6 @@ public strictfp class RobotPlayer {
      */
     static Direction randomDirection() {
         return directions[(int) (Math.random() * directions.length)];
-    }
-
-    /**
-     * Returns a random spawnable RobotType
-     *
-     * @return a random RobotType
-     */
-    static RobotType randomSpawnableRobotType() {
-        return spawnableRobot[(int) (Math.random() * spawnableRobot.length)];
     }
 
     /**
