@@ -1,6 +1,7 @@
 package SaZaPraYi;
 
 import battlecode.common.RobotController;
+import battlecode.common.RobotType;
 import org.junit.Test;
 import org.mockito.Mockito;
 import static org.junit.Assert.*;
@@ -33,4 +34,10 @@ public class EnlightenmentCenterTest {
         assertTrue(result < 1);
     }
 
+    @Test
+    public void randomSpawnableRobotTypeIsNotNull() {
+        setupTests();
+        RobotType result = ec.randomSpawnableRobotType();
+        assertNotNull(result);
+    }
 }
