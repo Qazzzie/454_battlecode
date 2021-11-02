@@ -145,7 +145,10 @@ public class RobotUtils {
      *
      * @throws GameActionException if anything here should cause one
      */
-    public void moveAwayFromOtherUnits() throws GameActionException{
+    public boolean moveAwayFromOtherUnits() throws GameActionException{
+        // True if we moved, false otherwise.
+        boolean moved = false;
+
         // The number of tiles we should move away from the wall if we
         // are adjacent to it. (in the muckflooder bot this is like 5)
         int tilesToMoveAwayFromWall = 2;
@@ -180,16 +183,15 @@ public class RobotUtils {
             if (isTouchingTheWall()) {
                 toMove = toMove.opposite();
                 for (int i = 0; i < tilesToMoveAwayFromWall; i++) {
-                    tryMove(toMove);
-                    //if (tryMove(toMove))
-                    //    System.out.println("I moved!");
+                    if(tryMove(toMove))
+                        moved = true;
                 }
             } else {
                 // Otherwise move in the opposite-of-average direction
-                tryMove(toMove);
-                //if (tryMove(toMove))
-                //    System.out.println("I moved!");
+                if(tryMove(toMove))
+                    moved = true;
             }
         }
+        return moved;
     }
 }
