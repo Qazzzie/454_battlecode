@@ -1,6 +1,7 @@
 package SaZaPraYi;
 
 import battlecode.common.*;
+import java.util.Random;
 
 public class Muckraker {
     private static RobotController rc;
@@ -72,6 +73,7 @@ public class Muckraker {
         int senseRadius = rc.getType().sensorRadiusSquared;
         int actionRadius = rc.getType().actionRadiusSquared;
 
+
         // If we don't have a home base location, we probably just got spawned,
         // and there is probably one nearby, so let's set it.
         if(locationOfBase == null)
@@ -117,13 +119,25 @@ public class Muckraker {
         for (RobotInfo robot: rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, enemy)){
             if(robot.getType()== RobotType.POLITICIAN) {
                 Direction enemy_loc = rc.getLocation().directionTo(robot.location);
-                if (utils.tryMove(enemy_loc.opposite())) {
-                    //System.out.println("Moving away from ");
-                }
+                utils.tryMove(enemy_loc.opposite());
             }
         }
 
-        utils.tryMove(utils.randomDirection());
+        Direction ec_location = utils.randomDirection();
+        for (RobotInfo robot: rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, enemy)){
+            if(robot.getType()== RobotType.ENLIGHTENMENT_CENTER) {
+                ec_location = rc.getLocation().directionTo(robot.location);
+            }
+        }
+
+        Random rand = new Random();
+        int num = rand.nextInt(10);
+
+        if(num>3)
+            utils.tryMove(ec_location.opposite());
+        else
+            utils.tryMove((utils.randomDirection()));
+
         //if (utils.tryMove(utils.randomDirection()))
         //    System.out.println("I moved!");
     }
