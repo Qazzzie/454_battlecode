@@ -123,6 +123,7 @@ public class Muckraker {
             }
         }
 
+        //Sensing nearby EC abd get the location of it
         Direction ec_location = utils.randomDirection();
         for (RobotInfo robot: rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, enemy)){
             if(robot.getType()== RobotType.ENLIGHTENMENT_CENTER) {
@@ -130,6 +131,8 @@ public class Muckraker {
             }
         }
 
+        //Genrate random number from 0-10 so that we could have muckrakers move randomly 3 times
+        //run away from EC 7 times within 10 moves
         Random rand = new Random();
         int num = rand.nextInt(10);
 
