@@ -105,7 +105,6 @@ public class Politician {
             return;
         }
 
-
         // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
         RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
         if(muckrakerToFollow != null) {
