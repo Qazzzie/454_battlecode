@@ -24,7 +24,9 @@ public class RobotUtils {
     public enum flags {
         NOTHING,
         MUCKRAKER_FOUND_GREY_EC,
-        MUCKRAKER_EC_COOLDOWN
+        MUCKRAKER_EC_COOLDOWN,
+        SLANDERER_SPOTTED_ENEMY,
+        MUCKRAKER_FOUND_ENEMY_EC
     }
 
 
@@ -123,6 +125,19 @@ public class RobotUtils {
     }
 
     /**
+     * Returns a random location that is (probably) outside of the map.
+     *
+     * @return A random location likely outside of the map.
+     */
+    public MapLocation randomLocationOutsideOfMapToMoveTo() {
+        int BIG_NUMBER_OUTSIDE_OF_MAP = Integer.MAX_VALUE;
+        return new MapLocation(
+                (int)((Math.random() - 0.5) * BIG_NUMBER_OUTSIDE_OF_MAP),
+                (int)((Math.random() - 0.5) * BIG_NUMBER_OUTSIDE_OF_MAP)
+                );
+    }
+
+    /**
      * Returns true or false whether or not the robot is touching the wall
      *
      * @return true if touching the wall, false if not.
@@ -145,7 +160,10 @@ public class RobotUtils {
      *
      * @throws GameActionException if anything here should cause one
      */
-    public void moveAwayFromOtherUnits() throws GameActionException{
+    public boolean moveAwayFromOtherUnits() throws GameActionException{
+        // True if we moved, false otherwise.
+        boolean moved = false;
+
         // The number of tiles we should move away from the wall if we
         // are adjacent to it. (in the muckflooder bot this is like 5)
         int tilesToMoveAwayFromWall = 2;
@@ -180,16 +198,15 @@ public class RobotUtils {
             if (isTouchingTheWall()) {
                 toMove = toMove.opposite();
                 for (int i = 0; i < tilesToMoveAwayFromWall; i++) {
-                    tryMove(toMove);
-                    //if (tryMove(toMove))
-                    //    System.out.println("I moved!");
+                    if(tryMove(toMove))
+                        moved = true;
                 }
             } else {
                 // Otherwise move in the opposite-of-average direction
-                tryMove(toMove);
-                //if (tryMove(toMove))
-                //    System.out.println("I moved!");
+                if(tryMove(toMove))
+                    moved = true;
             }
         }
+        return moved;
     }
 }
