@@ -67,26 +67,17 @@ public class Politician {
 
         int noofNearbyRobots = attackable.length + friendly.length;
         int initialConviction = rc.getConviction();
-        int useableConviction = 0;
-        if (noofNearbyRobots > 0) {
-            // usable conviction must be >0 to give a speech.
-            useableConviction = (initialConviction - CONVICTION_PENALTY) / noofNearbyRobots;
-        }
+        int usableConviction = 0;
+        double empowerFactor = rc.getEmpowerFactor(friend,0);
+
+        // calculate conviction value that can be used to empower
+        usableConviction = getUsableConviction(initialConviction,noofNearbyRobots,empowerFactor);
 
         //empower when Neutral EC is nearby
-        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
-            if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
-                //System.out.println("empowering....");
-                if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
-                //System.out.println("empowered");
-            } else {
-                utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
-                return;
-            }
-        }
+        empowerNeutralEC(senseRadius,actionRadius,neutralEC);
 
         //move towards enemy area to reduce their power when own power is less
-        if (useableConviction <= CONVICTION_PENALTY){
+        if (initialConviction <= CONVICTION_PENALTY){
             // check/sense for enemy robots within radius and move towards their direction
             for (RobotInfo robot: rc.senseNearbyRobots(senseRadius, enemy)){
                 if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
@@ -107,13 +98,12 @@ public class Politician {
 
         // Check if the number of enemies are present within attackable radius.
         // If found check for own conviction value and if the value is greater than 10 empower enemies.
-        if(attackable.length != 0 && rc.canEmpower(actionRadius) && useableConviction > 0){
+        if(attackable.length != 0 && rc.canEmpower(actionRadius) && usableConviction > 0){
             //System.out.println("empowering...");
             if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
             //System.out.println("empowered");
             return;
         }
-
 
         // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
         RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
@@ -135,15 +125,7 @@ public class Politician {
         utils.moveAwayFromOtherUnits();
 
         // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
-        if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
-            if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && useableConviction > 0 && rc.canEmpower(actionRadius)){
-                //System.out.println("empowering...");
-                if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
-                //System.out.println("empowered");
-                return;
-            }
-
-        }
+        convictOwnTeam(usableConviction,actionRadius);
 
 
         /*
@@ -180,4 +162,42 @@ public class Politician {
         return null;
     }
 
+    public int getUsableConviction(int initialConviction, int noofNearbyRobots, double empowerFactor){
+        if (noofNearbyRobots > 0) {
+            if (empowerFactor < 1){
+                // when empower factor is less than 1 and if we multiply our conviction value it decreases the value
+                // in such case set empowerFactor = 1 (as if we are not multiplying conviction value at all)
+                empowerFactor = 1;
+            }
+            // usable conviction must be >0 to give a speech.
+            return (int) (((initialConviction - CONVICTION_PENALTY) * empowerFactor) / noofNearbyRobots);
+        }
+        else {
+            return (int) (initialConviction - CONVICTION_PENALTY);
+        }
+    }
+
+    private void empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
+        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
+            if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
+                //System.out.println("empowering....");
+                if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
+                //System.out.println("empowered");
+            } else {
+                utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
+                return;
+            }
+        }
+    }
+
+    private void convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
+        if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
+            if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && usableConviction > 0 && rc.canEmpower(actionRadius)){
+                //System.out.println("empowering...");
+                if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
+                //System.out.println("empowered");
+                return;
+            }
+        }
+    }
 }
