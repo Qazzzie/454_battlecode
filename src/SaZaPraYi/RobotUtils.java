@@ -122,6 +122,11 @@ public class RobotUtils {
         return null;
     }
 
+    /**
+     * Returns a random location that is (probably) outside of the map.
+     *
+     * @return A random location likely outside of the map.
+     */
     public MapLocation randomLocationOutsideOfMapToMoveTo() {
         int BIG_NUMBER_OUTSIDE_OF_MAP = Integer.MAX_VALUE;
         return new MapLocation(

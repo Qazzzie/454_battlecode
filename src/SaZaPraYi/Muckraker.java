@@ -125,7 +125,7 @@ public class Muckraker {
             }
         }
 
-        // If we aren't doing grey EC stuff, space out from other units.
+        // If we aren't doing grey EC stuff, and we aren't bouncy, space out from other units.
         if(muckrakerType != muckrakerTypes.BOUNCY
                 && rc.getFlag(rc.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal())
             utils.moveAwayFromOtherUnits();
@@ -146,6 +146,11 @@ public class Muckraker {
         handleMovement();
     }
 
+    /**
+     * This handles the movement of the Muckraker.
+     *
+     * @throws GameActionException if anything should cause one
+     */
     private void handleMovement() throws GameActionException {
         Direction toMove;
         if(muckrakerType == muckrakerTypes.BOUNCY) {
