@@ -29,17 +29,23 @@ public class Slanderer {
      */
     public void run() throws GameActionException {
         int sensorRadiusSquared = rc.getType().sensorRadiusSquared;
-        Direction to_move = utils.randomDirection();
+//        Direction to_move = utils.randomDirection();
         // Move away from sensed enemies.
         if (rc.senseNearbyRobots(sensorRadiusSquared, rc.getTeam().opponent()).length != 0) {
             //System.out.println("Enemy sensed");
-            avoid();
-        } else
-            utils.moveAwayFromOtherUnits(); //second priority, to be demoted by moving away from slanderers with their enemy_spotted flag up
+            rc.setFlag(SaZaPraYiZDev.RobotUtils.flags.NOTHING.ordinal());
+            avoidEnemy();
+        } else {
+            rc.setFlag(SaZaPraYiZDev.RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
+            avoidSlandererFlagging(); //second priority, to be demoted by moving away from slanderers with their enemy_spotted flag up
+        }
     }
 
-    public boolean avoid() throws GameActionException {
-        enemy_spotted = true;
+    public boolean avoidEnemy() throws GameActionException {
+//        int currentFlag = 0;
+//        rc.setFlag(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
+//        int currentFlag = rc.getFlag(rc.getID());
+
         for (RobotInfo enemy_i : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
             Direction away_from_enemy_i = rc.getLocation().directionTo(enemy_i.location).opposite();
             if (utils.tryMove(away_from_enemy_i)) {
@@ -53,6 +59,20 @@ public class Slanderer {
         return false;
     }
 
+    public boolean avoidSlandererFlagging() throws GameActionException {
+        //Move away from flagging slanderer FS.
+        for (RobotInfo FS : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam())) {
+            if(rc.getFlag(FS.getID()) == RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal()){
+                Direction away_from_FS = rc.getLocation().directionTo(FS.location).opposite();
+                if (utils.tryMove(away_from_FS)) {
+                    System.out.println("Moving away from Flagging slanderer");
+                    return true;
+                }
+            }
+        }
+        utils.moveAwayFromOtherUnits();
+        return false;
+    }
 //    //avoid walls and otherwise move randomly.
 //    public void normalMove()throws GameActionException{
 //        Direction to_move = utils.randomDirection();
