@@ -33,10 +33,10 @@ public class Slanderer {
         // Move away from sensed enemies.
         if (rc.senseNearbyRobots(sensorRadiusSquared, rc.getTeam().opponent()).length != 0) {
             //System.out.println("Enemy sensed");
-            rc.setFlag(SaZaPraYiZDev.RobotUtils.flags.NOTHING.ordinal());
+            rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
             avoidEnemy();
         } else {
-            rc.setFlag(SaZaPraYiZDev.RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
+            rc.setFlag(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
             avoidSlandererFlagging(); //second priority, to be demoted by moving away from slanderers with their enemy_spotted flag up
         }
     }
