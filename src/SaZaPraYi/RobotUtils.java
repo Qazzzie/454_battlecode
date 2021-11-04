@@ -24,7 +24,9 @@ public class RobotUtils {
     public enum flags {
         NOTHING,
         MUCKRAKER_FOUND_GREY_EC,
-        MUCKRAKER_EC_COOLDOWN
+        MUCKRAKER_EC_COOLDOWN,
+        SLANDERER_SPOTTED_ENEMY,
+        MUCKRAKER_FOUND_ENEMY_EC
     }
 
 
