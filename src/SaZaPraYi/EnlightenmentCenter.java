@@ -21,7 +21,7 @@ public class EnlightenmentCenter {
     should be chosen to be spawned. Currently, it's 60%. If a Politician
     isn't chosen, a Muckraker is chosen.
      */
-    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.2;
+    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.15;
 
     /*
     This is the minimum number of slanderers that should be around
@@ -64,7 +64,7 @@ public class EnlightenmentCenter {
     /*
     Ratio used to make muckrakers bigger based on current influence
      */
-    static final double NORMAL_MUCKRAKER_INFLUENCE_RATIO = 0.03;
+    static final double NORMAL_MUCKRAKER_INFLUENCE_RATIO = 0.001;
 
     /*
     This is the number of rounds before the EC should start

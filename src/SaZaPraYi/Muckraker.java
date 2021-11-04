@@ -50,6 +50,21 @@ public class Muckraker {
     // After this many turns, a muckraker with the grey EC flag should deflag itself.
     private static final int TURNS_BEFORE_SELF_DEFLAG = 400;
 
+    // Percent of the time a Muckraker should be a "bouncy" type
+    private static final double BOUNCY_PERCENT = 0.2;
+
+    // Enum for different "species" of muckrakers
+    enum muckrakerTypes {
+        NORMAL,
+        BOUNCY
+    }
+
+    // The "species" type of this muckraker
+    private static muckrakerTypes muckrakerType;
+
+    // The location a bouncy muckraker is moving towards
+    private MapLocation bouncyMuckrakerPointToMoveTo;
+
     /**
      * The constructor for the Muckraker controller object.
      *
@@ -59,6 +74,11 @@ public class Muckraker {
     public Muckraker(RobotController _rc, RobotUtils _utils) {
         rc = _rc;
         utils = _utils;
+        if(Math.random() < BOUNCY_PERCENT) {
+            muckrakerType = muckrakerTypes.BOUNCY;
+        } else {
+            muckrakerType = muckrakerTypes.NORMAL;
+        }
     }
 
     /**
@@ -106,7 +126,8 @@ public class Muckraker {
         }
 
         // If we aren't doing grey EC stuff, space out from other units.
-        if(rc.getFlag(rc.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal())
+        if(muckrakerType != muckrakerTypes.BOUNCY
+                && rc.getFlag(rc.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal())
             utils.moveAwayFromOtherUnits();
 
         // Do grey EC logic. Return if that's what we should do
@@ -122,10 +143,22 @@ public class Muckraker {
                 }
             }
         }
+        handleMovement();
+    }
 
-        utils.tryMove(utils.randomDirection());
-        //if (utils.tryMove(utils.randomDirection()))
-        //    System.out.println("I moved!");
+    private void handleMovement() throws GameActionException {
+        Direction toMove;
+        if(muckrakerType == muckrakerTypes.BOUNCY) {
+            if(bouncyMuckrakerPointToMoveTo == null || utils.isTouchingTheWall()) {
+                bouncyMuckrakerPointToMoveTo = utils.randomLocationOutsideOfMapToMoveTo();
+            }
+            toMove = rc.getLocation().directionTo(bouncyMuckrakerPointToMoveTo);
+        } else {
+            toMove = utils.randomDirection();
+        }
+        if(!utils.tryMove(toMove)) {
+            utils.tryMove(utils.getDirectionOfRandomAdjacentEmptyTile(rc.getLocation()));
+        }
     }
 
     /**
