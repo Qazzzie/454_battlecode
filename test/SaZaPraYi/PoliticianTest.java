@@ -135,4 +135,29 @@ public class PoliticianTest {
         assertFalse(result);
     }
 
+    @Test
+    public void testEmpowerNeutralECWithNearbyEC() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyNeutralEC = new RobotInfo(
+                3,
+                Team.NEUTRAL,
+                RobotType.ENLIGHTENMENT_CENTER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any()))
+                .thenReturn(new RobotInfo[]{nearbyNeutralEC});
+        boolean result = p.empowerNeutralEC(1, 1, Team.NEUTRAL);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testEmpowerNeutralECWithNoNearbyEC() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any()))
+                .thenReturn(new RobotInfo[]{});
+        boolean result = p.empowerNeutralEC(1, 1, Team.NEUTRAL);
+        assertFalse(result);
+    }
 }

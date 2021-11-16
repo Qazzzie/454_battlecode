@@ -187,17 +187,17 @@ public class Politician {
         }
     }
 
-    private void empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
+    public boolean empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
-                //System.out.println("empowering....");
                 if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
-                //System.out.println("empowered");
+                return true;
             } else {
                 utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
-                return;
+                return false;
             }
         }
+        return false;
     }
 
     private void convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
