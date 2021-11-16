@@ -131,7 +131,7 @@ public class Politician {
         return false;
     }
 
-    private boolean handleMoveTowardsEnemy(Team enemy, int actionRadius, int senseRadius, int initialConviction) throws GameActionException {
+    public boolean handleMoveTowardsEnemy(Team enemy, int actionRadius, int senseRadius, int initialConviction) throws GameActionException {
         if (initialConviction <= CONVICTION_PENALTY){
             // check/sense for enemy robots within radius and move towards their direction
             for (RobotInfo robot: rc.senseNearbyRobots(senseRadius, enemy)){
@@ -146,7 +146,7 @@ public class Politician {
                 }
                 Direction enemy_location = rc.getLocation().directionTo(robot.location);
                 if (utils.tryMove(enemy_location)){
-                    //System.out.println("Moving towards enemy");
+                    return true;
                 }
             }
         }

@@ -4,8 +4,7 @@ import battlecode.common.*;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class PoliticianTest {
 
@@ -87,5 +86,53 @@ public class PoliticianTest {
         assertTrue(result);
     }
 
+    @Test
+    public void testMoveTowardsEnemyWithNearbyEnemyEC() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyEnemy = new RobotInfo(
+                3,
+                Team.B,
+                RobotType.ENLIGHTENMENT_CENTER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{nearbyEnemy});
+        Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+        Mockito.when(rc.getFlag(nearbyEnemy.ID))
+                .thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = p.handleMoveTowardsEnemy(Team.B, 1,1,10);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testMoveTowardsEnemyWithNearbyEnemySlanderer() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyEnemy = new RobotInfo(
+                3,
+                Team.B,
+                RobotType.SLANDERER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{nearbyEnemy});
+        Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+        Mockito.when(rc.getFlag(nearbyEnemy.ID))
+                .thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
+        boolean result = p.handleMoveTowardsEnemy(Team.B, 1,1,10);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testMoveTowardsEnemyWithNoNearbyEnemies() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{});
+        boolean result = p.handleMoveTowardsEnemy(Team.B, 1,1,10);
+        assertFalse(result);
+    }
 
 }
