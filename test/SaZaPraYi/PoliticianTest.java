@@ -1,10 +1,11 @@
 package SaZaPraYi;
 
-import battlecode.common.RobotController;
+import battlecode.common.*;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PoliticianTest {
 
@@ -64,6 +65,26 @@ public class PoliticianTest {
         double empowerFactor = 1.2;
         int result = p.getUsableConviction(initialConviction, noofNearByRobots, empowerFactor);
         assertEquals(expectedResult, result);
+    }
+
+    @Test
+    public void testHandleNearbyGreyECMuckrakerHasMuckraker() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyEnemyMuckraker = new RobotInfo(
+                3,
+                Team.B,
+                RobotType.MUCKRAKER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{nearbyEnemyMuckraker});
+        Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+        Mockito.when(rc.getFlag(nearbyEnemyMuckraker.ID))
+                .thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = p.handleNearbyGreyECMuckraker();
+        assertTrue(result);
     }
 
 
