@@ -200,14 +200,23 @@ public class Politician {
         return false;
     }
 
-    private void convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
+    /**
+     * Handles conviction of nearby friendly units
+     *
+     * @param usableConviction amount of usable conviction
+     * @param actionRadius action radius of politician
+     * @return true if speech was given, false otherwise
+     * @throws GameActionException if anything in here should cause one
+     */
+    public boolean convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
         if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && usableConviction > 0 && rc.canEmpower(actionRadius)){
                 //System.out.println("empowering...");
                 if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
                 //System.out.println("empowered");
-                return;
+                return true;
             }
         }
+        return false;
     }
 }

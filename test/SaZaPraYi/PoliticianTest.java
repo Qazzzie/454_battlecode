@@ -160,4 +160,29 @@ public class PoliticianTest {
         boolean result = p.empowerNeutralEC(1, 1, Team.NEUTRAL);
         assertFalse(result);
     }
+
+    @Test
+    public void testConvictOwnTeamWithNearbyFriendlyUnit() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyFriendlyMuckraker = new RobotInfo(
+                3,
+                Team.A,
+                RobotType.MUCKRAKER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.getRoundNum()).thenReturn(200);
+        Mockito.when(rc.canEmpower(Mockito.anyInt())).thenReturn(true);
+        boolean result = p.convictOwnTeam(10, 10);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testConvictOwnTeamWhenTooEarly() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.getRoundNum()).thenReturn(0);
+        boolean result = p.convictOwnTeam(10, 10);
+        assertFalse(result);
+    }
 }
