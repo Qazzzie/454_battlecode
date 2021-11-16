@@ -69,8 +69,12 @@ public class Slanderer {
                     return true;
                 }
             }
+            else{
+                utils.moveAwayFromOtherUnits();
+                return true;
+            }
         }
-        utils.moveAwayFromOtherUnits();
+
         return false;
     }
 //    //avoid walls and otherwise move randomly.
