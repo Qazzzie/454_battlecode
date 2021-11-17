@@ -99,6 +99,9 @@ public class EnlightenmentCenter {
     private static RobotUtils utils;
 
     private static ArrayList<RobotInfo> nearbyAlliedRobots, nearbyEnemyRobots, nearbyGreyRobots;
+    public ArrayList<RobotInfo> getNearbyAlliedRobots () { return nearbyAlliedRobots; }
+    public ArrayList<RobotInfo> getNearbyEnemyRobots () { return nearbyEnemyRobots; }
+    public ArrayList<RobotInfo> getNearbyGreyRobots () { return nearbyGreyRobots; }
 
     /**
      * The constructor for the EnlightenmentCenter controller object.
@@ -211,7 +214,7 @@ public class EnlightenmentCenter {
     /**
      * Initializes the robot lists
      */
-    private void initializeRobotLists() {
+    public void initializeRobotLists() {
         nearbyAlliedRobots = new ArrayList<>();
         nearbyEnemyRobots = new ArrayList<>();
         nearbyGreyRobots = new ArrayList<>();

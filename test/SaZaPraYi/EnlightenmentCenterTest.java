@@ -75,4 +75,13 @@ public class EnlightenmentCenterTest {
         assertNotSame(result, RobotType.ENLIGHTENMENT_CENTER);
         assertNotSame(result, RobotType.SLANDERER);
     }
+
+    @Test
+    public void testInitializeRobotListsMakesNonNullLists() {
+        setupTests();
+        ec.initializeRobotLists();
+        assertNotNull(ec.getNearbyAlliedRobots());
+        assertNotNull(ec.getNearbyEnemyRobots());
+        assertNotNull(ec.getNearbyGreyRobots());
+    }
 }
