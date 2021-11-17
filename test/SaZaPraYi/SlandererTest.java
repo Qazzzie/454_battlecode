@@ -69,13 +69,5 @@ public class SlandererTest {
         assertTrue(result);
     }
 
-
-
-
-
-
-
-
-
 }
 
