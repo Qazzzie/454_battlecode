@@ -68,4 +68,11 @@ public class EnlightenmentCenterTest {
         boolean result = ec.bid();
         assertFalse(result);
     }
+
+    @Test
+    public void testRandomSpawnableRobotTypeReturnsRobot() {
+        RobotType result = EnlightenmentCenter.randomSpawnableRobotType();
+        assertNotSame(result, RobotType.ENLIGHTENMENT_CENTER);
+        assertNotSame(result, RobotType.SLANDERER);
+    }
 }
