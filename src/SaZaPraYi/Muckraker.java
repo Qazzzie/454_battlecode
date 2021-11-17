@@ -339,19 +339,6 @@ public class Muckraker {
                     //System.out.println("e x p o s e d");
                     rc.expose(robot.location);
 
-//                    //After exposing one slanderer, friend speech get conviction
-//                    double multi_factor = (1+0.001* robot.influence);
-//                    int initroundnum = rc.getRoundNum();
-//                    Team friend = rc.getTeam();
-//                    while ( (rc.getRoundNum()-initroundnum) <50 ){
-//                        for (RobotInfo bot: rc.senseNearbyRobots(actionRadius,friend)){
-//                            if(bot.getType()== RobotType.POLITICIAN){
-//                                //Multiplicative factor to totally convince
-//                                System.out.println("Mutiplicatived");
-//                            }
-//                        }
-//                    }
-
                     return true;
                 }
             }
