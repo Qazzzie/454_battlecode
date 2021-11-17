@@ -1,5 +1,6 @@
 package SaZaPraYi;
 
+import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import org.junit.Test;
@@ -39,5 +40,32 @@ public class EnlightenmentCenterTest {
         setupTests();
         RobotType result = ec.randomSpawnableRobotType();
         assertNotNull(result);
+    }
+
+    @Test
+    public void testBidActuallyBids() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.getRoundNum()).thenReturn(1000);
+        Mockito.when(rc.getInfluence()).thenReturn(1000);
+        boolean result = ec.bid();
+        assertTrue(result);
+    }
+
+    @Test
+    public void testBidWithNoInfluence() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.getRoundNum()).thenReturn(1000);
+        Mockito.when(rc.getInfluence()).thenReturn(0);
+        boolean result = ec.bid();
+        assertFalse(result);
+    }
+
+    @Test
+    public void testBidOnFirstRound() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.getRoundNum()).thenReturn(0);
+        Mockito.when(rc.getInfluence()).thenReturn(1000);
+        boolean result = ec.bid();
+        assertFalse(result);
     }
 }
