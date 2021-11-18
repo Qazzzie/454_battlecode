@@ -60,7 +60,26 @@ import org.junit.Test;
 
         @Test
         public void followEnemyECFlaggingMuckrakers() throws GameActionException{
+        setupTests();
+        Team player = Team.A;
+        Mockito.when(rc.getTeam()).thenReturn(player);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
 
+            RobotInfo unitA = new RobotInfo(3,
+                    rc.getTeam(),
+                    RobotType.MUCKRAKER,
+                    10,
+                    10,
+                    new MapLocation(0, 3));
+            RobotInfo unitB = new RobotInfo(4,
+                    rc.getTeam().opponent(),
+                    RobotType.SLANDERER,
+                    10,
+                    10,
+                    new MapLocation(2, -2));
+
+
+            Mockito.when(rc.getFlag(unitB.getID())).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
             Mockito.when(rc.senseRobotAtLocation(unitA.location)).thenReturn(unitA);
             Mockito.when(rc.senseRobotAtLocation(unitB.location)).thenReturn(unitB);
             MapLocation location = new MapLocation(0,0);
