@@ -324,7 +324,7 @@ public class Muckraker {
     }
 
     // expose nearby units
-    private boolean exposeUnits() throws GameActionException{
+    public boolean exposeUnits() throws GameActionException{
         Team enemy = rc.getTeam().opponent();
         int senseRadius = rc.getType().sensorRadiusSquared;
         int actionRadius = rc.getType().actionRadiusSquared;
