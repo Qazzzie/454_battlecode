@@ -164,7 +164,7 @@ public class Muckraker {
         Random rand = new Random();
         int num = rand.nextInt(RAND_SPAWN);
 
-        if(num>3)
+        if(num>NUM_DEC_TO_SPAWN)
             utils.tryMove(rc.getLocation().directionTo(locationOfBase).opposite());
         else
             utils.tryMove((utils.randomDirection()));
