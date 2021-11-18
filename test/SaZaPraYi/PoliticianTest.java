@@ -1,10 +1,13 @@
 package SaZaPraYi;
 
+import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PoliticianTest {
 
@@ -66,5 +69,17 @@ public class PoliticianTest {
         assertEquals(expectedResult, result);
     }
 
-
+//    @Test
+//    public void testConvictOwnTeam()throws GameActionException{
+//        setupTests();
+//        int actionRadius = rc.getType().actionRadiusSquared;
+//        Mockito.when(rc.getRoundNum()).thenReturn(p.MINIMUM_ROUNDS_BEFORE_CONVICTION);
+////        Mockito.when(rc.getRoundNum()).thenReturn(p.MINIMUM_ROUNDS_BEFORE_CONVICTION);
+//
+//        Mockito.when(rc.canEmpower(actionRadius)).thenReturn(true);
+////        Mockito.when(rc.canEmpower(actionRadius)).thenReturn(true);
+//
+//        boolean convicted = p.convictOwnTeam(1, rc.getType().actionRadiusSquared);
+//        assertTrue(convicted);
+//    }
 }
