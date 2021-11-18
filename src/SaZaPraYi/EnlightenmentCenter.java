@@ -21,7 +21,7 @@ public class EnlightenmentCenter {
     should be chosen to be spawned. Currently, it's 60%. If a Politician
     isn't chosen, a Muckraker is chosen.
      */
-    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.2;
+    static final double POLITICIAN_SPAWN_PERCENTAGE = 0.15;
 
     /*
     This is the minimum number of slanderers that should be around
@@ -64,7 +64,7 @@ public class EnlightenmentCenter {
     /*
     Ratio used to make muckrakers bigger based on current influence
      */
-    static final double NORMAL_MUCKRAKER_INFLUENCE_RATIO = 0.03;
+    static final double NORMAL_MUCKRAKER_INFLUENCE_RATIO = 0.001;
 
     /*
     This is the number of rounds before the EC should start
@@ -97,6 +97,11 @@ public class EnlightenmentCenter {
 
     private static RobotController rc;
     private static RobotUtils utils;
+
+    private static ArrayList<RobotInfo> nearbyAlliedRobots, nearbyEnemyRobots, nearbyGreyRobots;
+    public ArrayList<RobotInfo> getNearbyAlliedRobots () { return nearbyAlliedRobots; }
+    public ArrayList<RobotInfo> getNearbyEnemyRobots () { return nearbyEnemyRobots; }
+    public ArrayList<RobotInfo> getNearbyGreyRobots () { return nearbyGreyRobots; }
 
     /**
      * The constructor for the EnlightenmentCenter controller object.
@@ -135,16 +140,10 @@ public class EnlightenmentCenter {
         int senseRadius = rc.getType().sensorRadiusSquared;
 
         // Initializing nearby robot lists
-        ArrayList<RobotInfo> nearbyAlliedRobots = new ArrayList<>();
-        ArrayList<RobotInfo> nearbyEnemyRobots = new ArrayList<>();
-        ArrayList<RobotInfo> nearbyGreyRobots = new ArrayList<>();
+        initializeRobotLists();
 
         // Sort nearby robots into the above lists
-        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
-            if(robot.getTeam() == playerTeam) nearbyAlliedRobots.add(robot);
-            else if(robot.getTeam() == enemyTeam) nearbyEnemyRobots.add(robot);
-            else nearbyGreyRobots.add(robot);
-        }
+        putNearbyRobotsIntoLists(playerTeam, enemyTeam, senseRadius);
 
         if(nearbyGreyRobots.size() > 0) {
             robotTypeToBuild = RobotType.POLITICIAN;
@@ -204,13 +203,30 @@ public class EnlightenmentCenter {
         }
     }
 
+    private void putNearbyRobotsIntoLists(Team playerTeam, Team enemyTeam, int senseRadius) {
+        for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
+            if(robot.getTeam() == playerTeam) nearbyAlliedRobots.add(robot);
+            else if(robot.getTeam() == enemyTeam) nearbyEnemyRobots.add(robot);
+            else nearbyGreyRobots.add(robot);
+        }
+    }
+
+    /**
+     * Initializes the robot lists
+     */
+    public void initializeRobotLists() {
+        nearbyAlliedRobots = new ArrayList<>();
+        nearbyEnemyRobots = new ArrayList<>();
+        nearbyGreyRobots = new ArrayList<>();
+    }
+
 
     /**
      * This contains the logic for actually making bids
      *
      * @throws GameActionException if anything would cause one
      */
-    private void bid() throws GameActionException {
+     public boolean bid() throws GameActionException {
         int currentInfluence = rc.getInfluence();
         int turnCount = rc.getRoundNum();
         double bidRatio = getBidRatio(turnCount);
@@ -219,9 +235,12 @@ public class EnlightenmentCenter {
         if (turnCount % VOTE_BIG_EVERY_N_ROUNDS == 0) influenceToSpendOnBid *= BIG_VOTE_RATIO;
         influenceToSpendOnBid = Math.min(influenceToSpendOnBid, currentInfluence);
         // This prevents spending a negative amount on a bid
-        if(influenceToSpendOnBid <= 0) return;
-        if (turnCount > ROUNDS_BEFORE_START_VOTING)
+        if(influenceToSpendOnBid <= 0) return false;
+        if (turnCount > ROUNDS_BEFORE_START_VOTING) {
             rc.bid(influenceToSpendOnBid);
+            return true;
+        }
+        return false;
     }
 
     /**

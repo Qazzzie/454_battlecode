@@ -127,6 +127,19 @@ public class RobotUtils {
     }
 
     /**
+     * Returns a random location that is (probably) outside of the map.
+     *
+     * @return A random location likely outside of the map.
+     */
+    public MapLocation randomLocationOutsideOfMapToMoveTo() {
+        int BIG_NUMBER_OUTSIDE_OF_MAP = Integer.MAX_VALUE;
+        return new MapLocation(
+                (int)((Math.random() - 0.5) * BIG_NUMBER_OUTSIDE_OF_MAP),
+                (int)((Math.random() - 0.5) * BIG_NUMBER_OUTSIDE_OF_MAP)
+                );
+    }
+
+    /**
      * Returns true or false whether or not the robot is touching the wall
      *
      * @return true if touching the wall, false if not.

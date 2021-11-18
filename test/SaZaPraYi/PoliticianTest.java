@@ -1,13 +1,20 @@
 package SaZaPraYi;
 
+
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
+
+import battlecode.common.*;
+
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.*;
 
 public class PoliticianTest {
 
@@ -69,17 +76,125 @@ public class PoliticianTest {
         assertEquals(expectedResult, result);
     }
 
-//    @Test
-//    public void testConvictOwnTeam()throws GameActionException{
-//        setupTests();
-//        int actionRadius = rc.getType().actionRadiusSquared;
-//        Mockito.when(rc.getRoundNum()).thenReturn(p.MINIMUM_ROUNDS_BEFORE_CONVICTION);
-////        Mockito.when(rc.getRoundNum()).thenReturn(p.MINIMUM_ROUNDS_BEFORE_CONVICTION);
-//
-//        Mockito.when(rc.canEmpower(actionRadius)).thenReturn(true);
-////        Mockito.when(rc.canEmpower(actionRadius)).thenReturn(true);
-//
-//        boolean convicted = p.convictOwnTeam(1, rc.getType().actionRadiusSquared);
-//        assertTrue(convicted);
-//    }
+
+    @Test
+    public void testHandleNearbyGreyECMuckrakerHasMuckraker() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyEnemyMuckraker = new RobotInfo(
+                3,
+                Team.B,
+                RobotType.MUCKRAKER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{nearbyEnemyMuckraker});
+        Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+        Mockito.when(rc.getFlag(nearbyEnemyMuckraker.ID))
+                .thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = p.handleNearbyGreyECMuckraker();
+        assertTrue(result);
+    }
+
+    @Test
+    public void testMoveTowardsEnemyWithNearbyEnemyEC() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyEnemy = new RobotInfo(
+                3,
+                Team.B,
+                RobotType.ENLIGHTENMENT_CENTER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{nearbyEnemy});
+        Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+        Mockito.when(rc.getFlag(nearbyEnemy.ID))
+                .thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = p.handleMoveTowardsEnemy(Team.B, 1,1,10);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testMoveTowardsEnemyWithNearbyEnemySlanderer() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyEnemy = new RobotInfo(
+                3,
+                Team.B,
+                RobotType.SLANDERER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{nearbyEnemy});
+        Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+        Mockito.when(rc.getFlag(nearbyEnemy.ID))
+                .thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
+        boolean result = p.handleMoveTowardsEnemy(Team.B, 1,1,10);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testMoveTowardsEnemyWithNoNearbyEnemies() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{});
+        boolean result = p.handleMoveTowardsEnemy(Team.B, 1,1,10);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testEmpowerNeutralECWithNearbyEC() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyNeutralEC = new RobotInfo(
+                3,
+                Team.NEUTRAL,
+                RobotType.ENLIGHTENMENT_CENTER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any()))
+                .thenReturn(new RobotInfo[]{nearbyNeutralEC});
+        boolean result = p.empowerNeutralEC(1, 1, Team.NEUTRAL);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testEmpowerNeutralECWithNoNearbyEC() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any()))
+                .thenReturn(new RobotInfo[]{});
+        boolean result = p.empowerNeutralEC(1, 1, Team.NEUTRAL);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testConvictOwnTeamWithNearbyFriendlyUnit() throws GameActionException {
+        setupTests();
+        RobotInfo nearbyFriendlyMuckraker = new RobotInfo(
+                3,
+                Team.A,
+                RobotType.MUCKRAKER,
+                10,
+                10,
+                new MapLocation(1, 0)
+        );
+        Mockito.when(rc.getRoundNum()).thenReturn(200);
+        Mockito.when(rc.canEmpower(Mockito.anyInt())).thenReturn(true);
+        boolean result = p.convictOwnTeam(10, 10);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testConvictOwnTeamWhenTooEarly() throws GameActionException {
+        setupTests();
+        Mockito.when(rc.getRoundNum()).thenReturn(0);
+        boolean result = p.convictOwnTeam(10, 10);
+        assertFalse(result);
+    }
+
 }
