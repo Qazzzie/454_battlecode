@@ -221,12 +221,21 @@ public class Muckraker {
             return true;
         }
 
+
+        back(currentFlag);
+        setflag(player,senseRadius,currentFlag);
+        return false;
+    }
+
+    private void back(int currentFlag)throws GameActionException{
         // If it's been long enough and we have a cooldown flag, go back to normal.
         if (currentFlag == RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal()) {
             if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN)
                 rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
         }
+    }
 
+    private void setflag(Team player, int senseRadius, int currentFlag)throws GameActionException{
         // If there's a grey EC near us and we arent cooldowned, set our flag and head
         // to base.
         if (currentFlag == RobotUtils.flags.NOTHING.ordinal()) {
@@ -242,7 +251,6 @@ public class Muckraker {
             }
 
         }
-        return false;
     }
 
     /**
@@ -324,7 +332,7 @@ public class Muckraker {
     }
 
     // expose nearby units
-    private boolean exposeUnits() throws GameActionException{
+    public boolean exposeUnits() throws GameActionException{
         Team enemy = rc.getTeam().opponent();
         int senseRadius = rc.getType().sensorRadiusSquared;
         int actionRadius = rc.getType().actionRadiusSquared;
@@ -338,19 +346,6 @@ public class Muckraker {
                 if (rc.canExpose(robot.location)) {
                     //System.out.println("e x p o s e d");
                     rc.expose(robot.location);
-
-//                    //After exposing one slanderer, friend speech get conviction
-//                    double multi_factor = (1+0.001* robot.influence);
-//                    int initroundnum = rc.getRoundNum();
-//                    Team friend = rc.getTeam();
-//                    while ( (rc.getRoundNum()-initroundnum) <50 ){
-//                        for (RobotInfo bot: rc.senseNearbyRobots(actionRadius,friend)){
-//                            if(bot.getType()== RobotType.POLITICIAN){
-//                                //Multiplicative factor to totally convince
-//                                System.out.println("Mutiplicatived");
-//                            }
-//                        }
-//                    }
 
                     return true;
                 }

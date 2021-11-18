@@ -2,8 +2,6 @@ package SaZaPraYi;
 
 import battlecode.common.*;
 
-//import javax.lang.model.type.NullType;
-//import java.util.ArrayList;
 
 
 public class Slanderer {
@@ -28,25 +26,38 @@ public class Slanderer {
      * @throws GameActionException if anything would cause one.
      */
     public void run() throws GameActionException {
+        Team enemy = rc.getTeam().opponent();
+        Team friend = rc.getTeam();
+
+
         int sensorRadiusSquared = rc.getType().sensorRadiusSquared;
 //        Direction to_move = utils.randomDirection();
-        // Move away from sensed enemies.
-        if (rc.senseNearbyRobots(sensorRadiusSquared, rc.getTeam().opponent()).length != 0) {
+
+        // If there are enemies near the sensor radius set flag and move away from them.
+        // Otherwise: avoid Flagging? look for flag signal and don't go to the direction
+        // of the flagged slanderer since they are sending signal of presence of an enemy
+
+        if (rc.senseNearbyRobots(sensorRadiusSquared, enemy).length >0) {
             //System.out.println("Enemy sensed");
-            rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
-            avoidEnemy();
-        } else {
             rc.setFlag(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
-            avoidSlandererFlagging(); //second priority, to be demoted by moving away from slanderers with their enemy_spotted flag up
+            avoidEnemy(enemy);
+        } else if (rc.senseNearbyRobots(sensorRadiusSquared, friend).length >0){
+            //rc.setFlag(RobotUtils.flags.NOTHING.ordinal());   //we don't want to set flag to all bots as 1 flag set takes 100bytes
+            avoidFlaggedSlanderer(friend); //second priority, to be demoted by moving away from slanderers with their enemy_spotted flag up
+        } else{
+            utils.moveAwayFromOtherUnits();
         }
     }
 
-    public boolean avoidEnemy() throws GameActionException {
-//        int currentFlag = 0;
-//        rc.setFlag(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
-//        int currentFlag = rc.getFlag(rc.getID());
 
-        for (RobotInfo enemy_i : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
+    /**
+     * If enemy detected, move to opposite direction of enemy; otherwise avoid bots of same team as well
+     * to prevent blocking
+     **/
+
+    public boolean avoidEnemy(Team enemy) throws GameActionException {
+
+        for (RobotInfo enemy_i : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, enemy)) {
             Direction away_from_enemy_i = rc.getLocation().directionTo(enemy_i.location).opposite();
             if (utils.tryMove(away_from_enemy_i)) {
 //                System.out.println("Moving away from enemy");
@@ -59,29 +70,36 @@ public class Slanderer {
         return false;
     }
 
-    public boolean avoidSlandererFlagging() throws GameActionException {
-        //Move away from flagging slanderer FS.
-        for (RobotInfo FS : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam())) {
-            if(rc.getFlag(FS.getID()) == RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal()){
+
+    /**
+     * Slanderer sense the own team flagged slanderer and moves away from them since it's a
+     * signal of presence of enemy near by.
+     * Also, moves away from each other in general not to block paths.
+     **/
+
+    public boolean avoidFlaggedSlanderer(Team friend) throws GameActionException {
+        //Move away from flagged slanderer FS.
+        for (RobotInfo FS : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, friend)) {
+            if (rc.getFlag(FS.getID()) == RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal()) {
                 Direction away_from_FS = rc.getLocation().directionTo(FS.location).opposite();
                 if (utils.tryMove(away_from_FS)) {
-                    System.out.println("Moving away from Flagging slanderer");
+                    //System.out.println("Moving away from Flagging slanderer");
+                    return true;
+                } else {
+                    utils.moveAwayFromOtherUnits();
                     return true;
                 }
             }
+            // need this else here to avoid slanderer not moving away from EC after production
+            else {
+                utils.moveAwayFromOtherUnits();
+                return true;
+            }
+
         }
-        utils.moveAwayFromOtherUnits();
         return false;
     }
-//    //avoid walls and otherwise move randomly.
-//    public void normalMove()throws GameActionException{
-//        Direction to_move = utils.randomDirection();
-//        // if its not on the map move opposite
-//        if (!rc.onTheMap(rc.adjacentLocation(to_move))) {
-//            to_move = to_move.opposite();
-//            utils.tryMove(to_move);
-//        } else {utils.tryMove(to_move);}
-//    }
+
 }
 
 
