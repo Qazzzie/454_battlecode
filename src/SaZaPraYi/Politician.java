@@ -77,24 +77,7 @@ public class Politician {
         empowerNeutralEC(senseRadius,actionRadius,neutralEC);
 
         //move towards enemy area to reduce their power when own power is less
-        if (initialConviction <= CONVICTION_PENALTY){
-            // check/sense for enemy robots within radius and move towards their direction
-            for (RobotInfo robot: rc.senseNearbyRobots(senseRadius, enemy)){
-                if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
-                    int distanceToEC = rc.getLocation().distanceSquaredTo(robot.getLocation());
-                    if(distanceToEC < actionRadius) {
-                        if(rc.canEmpower(distanceToEC + 1)) rc.empower(distanceToEC + 1);
-                    } else {
-                        utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
-                        return;
-                    }
-                }
-                Direction enemy_location = rc.getLocation().directionTo(robot.location);
-                if (utils.tryMove(enemy_location)){
-                    //System.out.println("Moving towards enemy");
-                }
-            }
-        }
+        if (handleMoveTowardsEnemy(enemy, actionRadius, senseRadius, initialConviction)) return;
 
         // Check if the number of enemies are present within attackable radius.
         // If found check for own conviction value and if the value is greater than 10 empower enemies.
@@ -106,22 +89,9 @@ public class Politician {
         }
 
         // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
-//        RobotInfo [] muckrakerToFollow = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, true);
-        RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
 
-        if(muckrakerToFollow != null) {
-            // follow it
-            MapLocation location = rc.getLocation();
-            MapLocation muckrakersLocation = muckrakerToFollow.getLocation();
-            Direction directionToMuckraker = location.directionTo(muckrakersLocation);
-            int distanceToMuckraker = location.distanceSquaredTo(muckrakersLocation);
-            utils.tryMove(directionToMuckraker);
-            // If we're too close to the muckraker, move away
-            if(distanceToMuckraker < DISTANCE_TOO_CLOSE_TO_MUCKRAKER) {
-                utils.tryMove(directionToMuckraker.opposite());
-            }
-            return;
-        }
+        if (handleNearbyGreyECMuckraker()) return;
+
 
         // Move away from other friendly units
         utils.moveAwayFromOtherUnits();
@@ -143,6 +113,47 @@ public class Politician {
         utils.tryMove(utils.randomDirection());
         //if (utils.tryMove(utils.randomDirection()))
          //   System.out.println("I moved!");
+    }
+
+    public boolean handleNearbyGreyECMuckraker() throws GameActionException {
+      // RobotInfo [] muckrakerToFollow = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, true);
+        RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
+        if(muckrakerToFollow != null) {
+            // follow it
+            MapLocation location = rc.getLocation();
+            MapLocation muckrakersLocation = muckrakerToFollow.getLocation();
+            Direction directionToMuckraker = location.directionTo(muckrakersLocation);
+            int distanceToMuckraker = location.distanceSquaredTo(muckrakersLocation);
+            utils.tryMove(directionToMuckraker);
+            // If we're too close to the muckraker, move away
+            if(distanceToMuckraker < DISTANCE_TOO_CLOSE_TO_MUCKRAKER) {
+                utils.tryMove(directionToMuckraker.opposite());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public boolean handleMoveTowardsEnemy(Team enemy, int actionRadius, int senseRadius, int initialConviction) throws GameActionException {
+        if (initialConviction <= CONVICTION_PENALTY){
+            // check/sense for enemy robots within radius and move towards their direction
+            for (RobotInfo robot: rc.senseNearbyRobots(senseRadius, enemy)){
+                if(robot.getType() == RobotType.ENLIGHTENMENT_CENTER) {
+                    int distanceToEC = rc.getLocation().distanceSquaredTo(robot.getLocation());
+                    if(distanceToEC < actionRadius) {
+                        if(rc.canEmpower(distanceToEC + 1)) rc.empower(distanceToEC + 1);
+                    } else {
+                        utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
+                        return true;
+                    }
+                }
+                Direction enemy_location = rc.getLocation().directionTo(robot.location);
+                if (utils.tryMove(enemy_location)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -179,19 +190,31 @@ public class Politician {
         }
     }
 
-    public void empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
+
+
+    public boolean empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
-                //System.out.println("empowering....");
                 if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
-                //System.out.println("empowered");
+                return true;
             } else {
                 utils.tryMove(rc.getLocation().directionTo(robot.getLocation()));
-                return;
+                return false;
             }
         }
+        return false;
     }
 
+
+
+    /**
+     * Handles conviction of nearby friendly units
+     *
+     * @param usableConviction amount of usable conviction
+     * @param actionRadius action radius of politician
+     * @return true if speech was given, false otherwise
+     * @throws GameActionException if anything in here should cause one
+     */
     public boolean convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
         if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && usableConviction > 0 && rc.canEmpower(actionRadius)){
