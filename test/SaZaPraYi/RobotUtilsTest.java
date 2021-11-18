@@ -1,6 +1,7 @@
 package SaZaPraYi;
 
 import battlecode.common.*;
+import com.sun.glass.ui.Robot;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -78,4 +79,26 @@ public class RobotUtilsTest {
         assertTrue(moved);
     }
 
+//    @Test
+//    public void TestSenseRobotsWith() throws GameActionException{
+//        setupTests();
+//
+//        RobotInfo unitA = new RobotInfo(3,
+//                rc.getTeam().opponent(),
+//                RobotType.MUCKRAKER,
+//                10,
+//                10,
+//                new MapLocation(0, 3));
+//
+//        RobotInfo[] nearbyUnits = new RobotInfo[]{unitA};
+//
+//        Mockito.when(rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())).thenReturn(nearbyUnits);
+//        Mockito.when(rc.getFlag(unitA.getID())).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+//
+//        RobotInfo [] unitZ = new RobotInfo[]{};
+//
+//        unitZ = utils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, false);
+//
+//        assertArrayEquals(unitZ, nearbyUnits);
+//    }
 }

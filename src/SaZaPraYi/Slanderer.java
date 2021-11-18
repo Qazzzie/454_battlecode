@@ -31,21 +31,17 @@ public class Slanderer {
         int sensorRadiusSquared = rc.getType().sensorRadiusSquared;
 //        Direction to_move = utils.randomDirection();
         // Move away from sensed enemies.
-        if (rc.senseNearbyRobots(sensorRadiusSquared, rc.getTeam().opponent()).length != 0) {
+        if (rc.senseNearbyRobots(sensorRadiusSquared, rc.getTeam().opponent()).length > 0) {
             //System.out.println("Enemy sensed");
-            rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
+            rc.setFlag(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
             avoidEnemy();
         } else {
-            rc.setFlag(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
+            rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
             avoidSlandererFlagging(); //second priority, to be demoted by moving away from slanderers with their enemy_spotted flag up
         }
     }
 
     public boolean avoidEnemy() throws GameActionException {
-//        int currentFlag = 0;
-//        rc.setFlag(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
-//        int currentFlag = rc.getFlag(rc.getID());
-
         for (RobotInfo enemy_i : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
             Direction away_from_enemy_i = rc.getLocation().directionTo(enemy_i.location).opposite();
             if (utils.tryMove(away_from_enemy_i)) {
@@ -73,15 +69,6 @@ public class Slanderer {
         utils.moveAwayFromOtherUnits();
         return false;
     }
-//    //avoid walls and otherwise move randomly.
-//    public void normalMove()throws GameActionException{
-//        Direction to_move = utils.randomDirection();
-//        // if its not on the map move opposite
-//        if (!rc.onTheMap(rc.adjacentLocation(to_move))) {
-//            to_move = to_move.opposite();
-//            utils.tryMove(to_move);
-//        } else {utils.tryMove(to_move);}
-//    }
 }
 
 

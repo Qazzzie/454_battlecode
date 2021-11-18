@@ -5,80 +5,78 @@ import battlecode.common.*;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class SlandererTest {
+public class MuckrakerTest {
     private RobotController rc;
     private RobotUtils utils;
-    private Slanderer S;
+    private Muckraker M;
+
     private void setupTests() {
         rc = Mockito.mock(RobotController.class);
         utils = new RobotUtils(rc);
-        S = new Slanderer(rc, utils);
+        M = new Muckraker(rc, utils);
     }
 
     @Test
-    public void testAvoidSlandererFlagging()throws GameActionException {
+    public void followEnemyECFlaggingMuckrakers() throws GameActionException{
         setupTests();
         Team player = Team.A;
         Mockito.when(rc.getTeam()).thenReturn(player);
-        Mockito.when(rc.getType()).thenReturn(RobotType.SLANDERER);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
         RobotInfo unitA = new RobotInfo(3,
                 rc.getTeam(),
-                RobotType.SLANDERER,
+                RobotType.MUCKRAKER,
                 10,
                 10,
                 new MapLocation(0, 3));
         RobotInfo unitB = new RobotInfo(4,
                 rc.getTeam(),
-                RobotType.SLANDERER,
+                RobotType.MUCKRAKER,
                 10,
                 10,
                 new MapLocation(2, -2));
 
-        Mockito.when(rc.getFlag(unitB.getID())).thenReturn(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
+        Mockito.when(rc.getFlag(unitB.getID())).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
 
         Mockito.when(rc.senseRobotAtLocation(unitA.location)).thenReturn(unitA);
         Mockito.when(rc.senseRobotAtLocation(unitB.location)).thenReturn(unitB);
+
         Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
         MapLocation location = new MapLocation(0,0);
         Mockito.when(rc.getLocation()).thenReturn(location);
         RobotInfo[] nearbyUnits = new RobotInfo[]{unitA, unitB};
-        int senseRadius = rc.getType().sensorRadiusSquared;
-        Mockito.when(rc.senseNearbyRobots(senseRadius, player)).thenReturn(nearbyUnits);
-        boolean moved = S.avoidSlandererFlagging();
+
+        Mockito.when(rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam())).thenReturn(nearbyUnits);
+        boolean moved = M.followEnemyECFlaggingMuckrakers();
         assertTrue(moved);
     }
 
 //    @Test
-//    public void testAvoidEnemy() throws GameActionException{
+//    public void avoidPolitician() throws GameActionException{
 //        setupTests();
 //        Team player = Team.A;
 //        Mockito.when(rc.getTeam()).thenReturn(player);
-//        Mockito.when(rc.getType()).thenReturn(RobotType.SLANDERER);
-//        RobotInfo unitA = new RobotInfo(3,
-//                rc.getTeam(),
-//                RobotType.SLANDERER,
-//                10,
-//                10,
-//                new MapLocation(0, 3));
+//        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+//
 //        RobotInfo unitB = new RobotInfo(4,
 //                rc.getTeam().opponent(),
-//                RobotType.SLANDERER,
+//                RobotType.POLITICIAN,
 //                10,
 //                10,
 //                new MapLocation(2, -2));
 //
+//        Mockito.when(rc.senseRobotAtLocation(unitB.location)).thenReturn(unitB);
 //        Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
 //        MapLocation location = new MapLocation(0,0);
-//        Mockito.when(rc.getLocation()).thenReturn(location);
 //
-//        Direction EDirection = rc.getLocation().directionTo(unitB.location).opposite();
-//        Mockito.when(rc.getLocation().directionTo(unitB.location)).thenReturn(EDirection);
+    //failing i think bc of how directionTo works but I could be wrong
+//        Direction pDirection = rc.getLocation().directionTo(unitB.location);
+
+//        Mockito.when(rc.getLocation().directionTo(Mockito.anyObject())).thenReturn(pDirection);
 //
-//        RobotInfo[] nearbyUnits = new RobotInfo[]{unitA, unitB};
-//        int senseRadius = rc.getType().sensorRadiusSquared;
-//        Mockito.when(rc.senseNearbyRobots(senseRadius, player)).thenReturn(nearbyUnits);
-//        boolean moved = S.avoidEnemy();
+//        RobotInfo[] nearbyUnits = new RobotInfo[]{unitB};
+//
+//        Mockito.when(rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())).thenReturn(nearbyUnits);
+//        boolean moved = M.avoidPolitician();
 //        assertTrue(moved);
 //    }
 }
-

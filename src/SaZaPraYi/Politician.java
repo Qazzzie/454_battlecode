@@ -106,7 +106,9 @@ public class Politician {
         }
 
         // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
+//        RobotInfo [] muckrakerToFollow = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, true);
         RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
+
         if(muckrakerToFollow != null) {
             // follow it
             MapLocation location = rc.getLocation();
@@ -150,7 +152,7 @@ public class Politician {
      * @return the RobotInfo object of a nearby muckraker that has a grey EC flag, otherwise null.
      * @throws GameActionException if anything in here should cause one
      */
-    private RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
+    public RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
         int senseRadius = rc.getType().sensorRadiusSquared;
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
             if(robot.getType() == RobotType.MUCKRAKER) {
@@ -177,7 +179,7 @@ public class Politician {
         }
     }
 
-    private void empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
+    public void empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
                 //System.out.println("empowering....");
@@ -190,14 +192,15 @@ public class Politician {
         }
     }
 
-    private void convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
+    public boolean convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
         if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && usableConviction > 0 && rc.canEmpower(actionRadius)){
                 //System.out.println("empowering...");
                 if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
                 //System.out.println("empowered");
-                return;
+                return true;
             }
         }
+        return false;
     }
 }
