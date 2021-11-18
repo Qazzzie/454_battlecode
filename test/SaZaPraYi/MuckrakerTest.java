@@ -48,7 +48,6 @@ import org.junit.Test;
 
             Mockito.when(rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent())).thenReturn(nearbyUnits);
             Mockito.when(rc.canExpose(unitB.location)).thenReturn(true);
-//        Mockito.when(rc.expose(unitB.location)).then(true);
             boolean exposed = M.exposeUnits();
             assertTrue(exposed);
         }
@@ -88,38 +87,26 @@ import org.junit.Test;
             assertTrue(exposed);
         }
 
+        @Test
+        public void testAvoidPolitician() throws GameActionException {
+            setupTests();
+            RobotInfo enemy = new RobotInfo(
+                    100, Team.B, RobotType.POLITICIAN,
+                    10, 10,
+                    new MapLocation(5, 5)
+            );
+            Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{enemy});
+            Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+            Mockito.when(rc.getTeam()).thenReturn(Team.B);
+            Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
 
+            Direction enemy_loc = rc.getLocation().directionTo(enemy.location);
 
-//    @Test
-//    public void avoidPolitician() throws GameActionException{
-//        setupTests();
-//        Team player = Team.A;
-//        Mockito.when(rc.getTeam()).thenReturn(player);
-//        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
-//
-//        RobotInfo unitB = new RobotInfo(4,
-//                rc.getTeam().opponent(),
-//                RobotType.POLITICIAN,
-//                10,
-//                10,
-//                new MapLocation(2, -2));
-//
-//        Mockito.when(rc.senseRobotAtLocation(unitB.location)).thenReturn(unitB);
-//        Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
-//        MapLocation location = new MapLocation(0,0);
-//
-            //failing i think bc of how directionTo works but I could be wrong
-//        Direction pDirection = rc.getLocation().directionTo(unitB.location);
-
-//        Mockito.when(rc.getLocation().directionTo(Mockito.anyObject())).thenReturn(pDirection);
-//
-//        RobotInfo[] nearbyUnits = new RobotInfo[]{unitB};
-//
-//        Mockito.when(rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())).thenReturn(nearbyUnits);
-//        boolean moved = M.avoidPolitician();
-//        assertTrue(moved);
-//    }
-}
+            Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
+            boolean result = M.avoidPolitician();
+            assertTrue(result);
+        }
+    }
 
 
 

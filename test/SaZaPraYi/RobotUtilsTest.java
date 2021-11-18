@@ -99,6 +99,6 @@ public class RobotUtilsTest {
 //
 //        unitZ = utils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, false);
 //
-//        assertArrayEquals(unitZ, nearbyUnits);
+//        assertEquals(unitZ[0].influence , 10);
 //    }
 }

@@ -353,11 +353,8 @@ public class Muckraker {
                     }
                 } else rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
             }
-
         followEnemyECFlaggingMuckrakers();
-
         utils.moveAwayFromOtherUnits();
-
         return false;
     }
 
