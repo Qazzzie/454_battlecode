@@ -221,12 +221,21 @@ public class Muckraker {
             return true;
         }
 
+
+        back(currentFlag);
+        setflag(player,senseRadius,currentFlag);
+        return false;
+    }
+
+    private void back(int currentFlag)throws GameActionException{
         // If it's been long enough and we have a cooldown flag, go back to normal.
         if (currentFlag == RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal()) {
             if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN)
                 rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
         }
+    }
 
+    private void setflag(Team player, int senseRadius, int currentFlag)throws GameActionException{
         // If there's a grey EC near us and we arent cooldowned, set our flag and head
         // to base.
         if (currentFlag == RobotUtils.flags.NOTHING.ordinal()) {
@@ -242,7 +251,6 @@ public class Muckraker {
             }
 
         }
-        return false;
     }
 
     /**
