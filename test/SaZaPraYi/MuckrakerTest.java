@@ -6,6 +6,8 @@ import static org.junit.Assert.*;
 import battlecode.common.*;
 import org.junit.Test;
 
+import java.util.Map;
+
 public class MuckrakerTest {
 
     private RobotController rc;
@@ -21,8 +23,6 @@ public class MuckrakerTest {
 
     @Test
     public void exposeUnits() throws GameActionException{
-        setupTests();
-
         setupTests();
         Team player = Team.A;
         Mockito.when(rc.getTeam()).thenReturn(player);
@@ -52,6 +52,23 @@ public class MuckrakerTest {
 //        Mockito.when(rc.expose(unitB.location)).then(true);
         boolean exposed = M.exposeUnits();
         assertTrue(exposed);
+    }
+
+    @Test
+    public void testHandleGreyEcFollowWhenNearbyGreyEC() throws GameActionException {
+       setupTests();
+       RobotInfo greyEC = new RobotInfo(3,
+           Team.NEUTRAL,
+           RobotType.ENLIGHTENMENT_CENTER,
+           10,
+           10,
+           new MapLocation(0, 3));
+       Mockito.when(rc.senseRobotAtLocation(greyEC.location)).thenReturn(greyEC);
+       Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{greyEC});
+       Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
+       Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+       boolean shouldReturn = M.handleGreyECFollow();
+       assertFalse(shouldReturn);
     }
 
 

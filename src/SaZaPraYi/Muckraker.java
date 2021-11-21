@@ -159,7 +159,7 @@ public class Muckraker {
      * @return true if we should return from run(), otherwise false.
      * @throws GameActionException if anything in here should cause one
      */
-    private boolean handleGreyECFollow() throws GameActionException {
+    public boolean handleGreyECFollow() throws GameActionException {
         Team player = rc.getTeam();
         int senseRadius = rc.getType().sensorRadiusSquared;
 
