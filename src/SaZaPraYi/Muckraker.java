@@ -353,4 +353,24 @@ public class Muckraker {
         }
         return false;
     }
+
+    /**
+     * This method will set the location of the home base
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfBase(MapLocation toSet) {
+        locationOfBase = toSet;
+        return true;
+    }
+
+    /**
+     * This method will set the location of the home base
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfGreyEC(MapLocation toSet) {
+        locationOfEC = toSet;
+        return true;
+    }
 }
