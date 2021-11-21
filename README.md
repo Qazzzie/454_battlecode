@@ -1,3 +1,5 @@
+[![Java CI with Gradle](https://github.com/Qazzzie/454_battlecode/actions/workflows/gradle.yml/badge.svg?branch=master)](https://github.com/Qazzzie/454_battlecode/actions/workflows/gradle.yml)
+
 # SaZaPraYi
 
 This is the Battlecode 2021 scaffold, containing an `examplefuncsplayer`. Read https://2021.battlecode.org/getting-started!
