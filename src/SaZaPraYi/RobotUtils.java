@@ -27,7 +27,7 @@ public class RobotUtils {
         MUCKRAKER_EC_COOLDOWN,
         SLANDERER_SPOTTED_ENEMY,
         MUCKRAKER_FOUND_ENEMY_EC,
-        MUCKRAKER_GAURDING_ENEMY_EC,
+        MUCKRAKER_GUARDING_ENEMY_EC,
         ANY
     }
 
@@ -221,7 +221,7 @@ public class RobotUtils {
             qualifyTeam = rc.getTeam().opponent();
 
         RobotInfo [] nearbyQualifyingUnits =
-                new RobotInfo[]{};
+                new RobotInfo[(rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, qualifyTeam).length)];
 
         int i=0;
         for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, qualifyTeam)) {
@@ -232,6 +232,7 @@ public class RobotUtils {
                 }
                 else if(Rflag.ordinal() == rc.getFlag(robot.getID())) {
                     nearbyQualifyingUnits[i] = robot;
+//                            new RobotInfo( robot.getID(), robot.getTeam(), robot.getType(), robot.influence, robot.conviction, robot.location);
                     i++;
                 }
             }

@@ -72,7 +72,6 @@ import org.junit.Test;
                     10,
                     new MapLocation(2, -2));
 
-
             Mockito.when(rc.getFlag(unitB.getID())).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
             Mockito.when(rc.senseRobotAtLocation(unitA.location)).thenReturn(unitA);
             Mockito.when(rc.senseRobotAtLocation(unitB.location)).thenReturn(unitB);
@@ -106,6 +105,7 @@ import org.junit.Test;
             boolean result = M.avoidPolitician();
             assertTrue(result);
         }
+
     }
 
 
