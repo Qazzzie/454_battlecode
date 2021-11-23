@@ -1,8 +1,18 @@
 package SaZaPraYi;
 
+
+import battlecode.common.GameActionException;
+import battlecode.common.RobotController;
+
 import battlecode.common.*;
+
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import static org.junit.Assert.*;
 
@@ -65,6 +75,7 @@ public class PoliticianTest {
         int result = p.getUsableConviction(initialConviction, noofNearByRobots, empowerFactor);
         assertEquals(expectedResult, result);
     }
+
 
     @Test
     public void testHandleNearbyGreyECMuckrakerHasMuckraker() throws GameActionException {
@@ -185,4 +196,5 @@ public class PoliticianTest {
         boolean result = p.convictOwnTeam(10, 10);
         assertFalse(result);
     }
+
 }

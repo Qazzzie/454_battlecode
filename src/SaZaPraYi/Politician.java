@@ -89,7 +89,26 @@ public class Politician {
         }
 
         // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
+
+//        RobotInfo [] muckrakerToFollow = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, true);
+        RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
+
+        if(muckrakerToFollow != null) {
+            // follow it
+            MapLocation location = rc.getLocation();
+            MapLocation muckrakersLocation = muckrakerToFollow.getLocation();
+            Direction directionToMuckraker = location.directionTo(muckrakersLocation);
+            int distanceToMuckraker = location.distanceSquaredTo(muckrakersLocation);
+            utils.tryMove(directionToMuckraker);
+            // If we're too close to the muckraker, move away
+            if(distanceToMuckraker < DISTANCE_TOO_CLOSE_TO_MUCKRAKER) {
+                utils.tryMove(directionToMuckraker.opposite());
+            }
+            return;
+        }
+
         if (handleNearbyGreyECMuckraker()) return;
+
 
         // Move away from other friendly units
         utils.moveAwayFromOtherUnits();
@@ -160,7 +179,7 @@ public class Politician {
      * @return the RobotInfo object of a nearby muckraker that has a grey EC flag, otherwise null.
      * @throws GameActionException if anything in here should cause one
      */
-    private RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
+    public RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
         int senseRadius = rc.getType().sensorRadiusSquared;
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
             if(robot.getType() == RobotType.MUCKRAKER) {
@@ -187,6 +206,7 @@ public class Politician {
         }
     }
 
+
     public boolean empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
@@ -200,6 +220,7 @@ public class Politician {
         return false;
     }
 
+
     /**
      * Handles conviction of nearby friendly units
      *
@@ -208,6 +229,7 @@ public class Politician {
      * @return true if speech was given, false otherwise
      * @throws GameActionException if anything in here should cause one
      */
+
     public boolean convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
         if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && usableConviction > 0 && rc.canEmpower(actionRadius)){
