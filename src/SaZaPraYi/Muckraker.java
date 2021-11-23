@@ -276,7 +276,7 @@ public class Muckraker {
      */
     public boolean guardEnemyEC() throws GameActionException {
         RobotInfo [] enemyECs = RobotUtils.senseRobotsWith(RobotType.ENLIGHTENMENT_CENTER, RobotUtils.flags.ANY, false);
-        RobotInfo [] Backup = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.ANY, true);
+        RobotInfo [] Backup = RobotUtils.se152855nseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.ANY, true);
         MapLocation [] EnemyECBorder = alreadyGuarding(enemyECs);
         //already in position to guard, just attack.
         if(EnemyECBorder.length == 6)
