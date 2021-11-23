@@ -83,8 +83,10 @@ public class RobotUtilsTest {
     public void TestSenseRobotsWith() throws GameActionException{
         setupTests();
 
+        Team player = Team.A;
+        int senseRadius = RobotType.MUCKRAKER.sensorRadiusSquared;
         RobotInfo unitA = new RobotInfo(3,
-                rc.getTeam().opponent(),
+                player,
                 RobotType.MUCKRAKER,
                 10,
                 10,
@@ -92,12 +94,14 @@ public class RobotUtilsTest {
 
         RobotInfo[] nearbyUnits = new RobotInfo[]{unitA};
 
-        Mockito.when(rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())).thenReturn(nearbyUnits);
+        Mockito.when(rc.senseNearbyRobots(senseRadius, player.opponent())).thenReturn(nearbyUnits);
         Mockito.when(rc.getFlag(unitA.getID())).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getTeam()).thenReturn(player);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
 
         RobotInfo [] unitZ = new RobotInfo[]{};
 
-        unitZ = utils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, false);
+        unitZ = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, false);
 
         assertEquals(unitZ[0].influence , 10);
     }

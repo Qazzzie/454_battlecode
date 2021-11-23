@@ -58,6 +58,7 @@ import org.junit.Test;
         Team player = Team.A;
         Mockito.when(rc.getTeam()).thenReturn(player);
         Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        int actionRadius = RobotType.MUCKRAKER.actionRadiusSquared;
 
             RobotInfo unitA = new RobotInfo(3,
                     rc.getTeam(),
@@ -80,7 +81,8 @@ import org.junit.Test;
             RobotInfo[] nearbyUnits = new RobotInfo[]{unitA, unitB};
             int senseRadius = rc.getType().sensorRadiusSquared;
 
-            Mockito.when(rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent())).thenReturn(nearbyUnits);
+            //Mockito.when(rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent())).thenReturn(nearbyUnits);
+            Mockito.when(rc.senseNearbyRobots(actionRadius, Team.B)).thenReturn(new RobotInfo[]{unitB});
             Mockito.when(rc.canExpose(unitB.location)).thenReturn(true);
             //        Mockito.when(rc.expose(unitB.location)).then(true);
             boolean exposed = M.exposeUnits();

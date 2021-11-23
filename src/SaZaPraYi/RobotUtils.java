@@ -220,22 +220,18 @@ public class RobotUtils {
         else
             qualifyTeam = rc.getTeam().opponent();
 
-        RobotInfo [] nearbyQualifyingUnits =
-                new RobotInfo[]{};
+        ArrayList<RobotInfo> nearbyQualifyingUnits = new ArrayList<>();
 
-        int i=0;
         for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, qualifyTeam)) {
             if (robot.getType() == Rtype) {
                 if(Rflag.ordinal() == RobotUtils.flags.ANY.ordinal()){
-                    nearbyQualifyingUnits[i] = robot;
-                    i++;
+                    nearbyQualifyingUnits.add(robot);
                 }
                 else if(Rflag.ordinal() == rc.getFlag(robot.getID())) {
-                    nearbyQualifyingUnits[i] = robot;
-                    i++;
+                    nearbyQualifyingUnits.add(robot);
                 }
             }
         }
-        return nearbyQualifyingUnits;
+        return nearbyQualifyingUnits.toArray(new RobotInfo[0]);
     }
 }
