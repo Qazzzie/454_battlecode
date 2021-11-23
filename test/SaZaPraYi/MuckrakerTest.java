@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 import battlecode.common.*;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class MuckrakerTest {
@@ -140,12 +141,84 @@ public class MuckrakerTest {
         Mockito.when(rc.senseRobotAtLocation(greyEC.location)).thenReturn(greyEC);
         Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{greyEC});
         Mockito.when(rc.getTeam()).thenReturn(Team.A);
-        Mockito.when(rc.senseNearbyRobots(senseRadius, Team.A)).thenReturn(new RobotInfo[]{greyEC});
         Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
         Mockito.when(rc.getID()).thenReturn(ourId);
         Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
         Mockito.when(rc.getFlag(ourId)).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
         boolean encounteredGreyEC = M.handleGreyECEncounter(Team.A, senseRadius, currentFlag);
         assertTrue(encounteredGreyEC);
+    }
+
+    @Test
+    public void testGuardEnemyECWithNearbyEnemyEC() throws GameActionException {
+        setupTests();
+        int senseRadius = RobotType.MUCKRAKER.sensorRadiusSquared;
+        int actionRadius = RobotType.MUCKRAKER.actionRadiusSquared;
+        int ourId = 1;
+        RobotInfo enemyEC = new RobotInfo(3,
+                Team.B,
+                RobotType.ENLIGHTENMENT_CENTER,
+                1,
+                1,
+                new MapLocation(0,3));
+        ArrayList<RobotInfo> nearbyMuckrakers = new ArrayList<>();
+        int muckrakerIDOffset = 10;
+        for(int i = 0; i < 8; i++) {
+            RobotInfo muckrakerToAdd = new RobotInfo(i + muckrakerIDOffset,
+                    Team.A,
+                    RobotType.MUCKRAKER,
+                    1,
+                    1,
+                    new MapLocation(-1, 4-i));
+            nearbyMuckrakers.add(muckrakerToAdd);
+        }
+        Mockito.when(rc.senseRobotAtLocation(enemyEC.location)).thenReturn(enemyEC);
+        Mockito.when(rc.senseNearbyRobots(senseRadius, Team.A)).thenReturn(nearbyMuckrakers.toArray(new RobotInfo[0]));
+        Mockito.when(rc.senseNearbyRobots(senseRadius, Team.B)).thenReturn(new RobotInfo[]{enemyEC});
+        Mockito.when(rc.senseNearbyRobots(actionRadius, Team.B)).thenReturn(new RobotInfo[]{enemyEC});
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{enemyEC});
+        Mockito.when(rc.getTeam()).thenReturn(Team.A);
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
+        Mockito.when(rc.getID()).thenReturn(ourId);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        Mockito.when(rc.getFlag(muckrakerIDOffset + 1)).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
+        Mockito.when(rc.canSenseLocation(Mockito.any())).thenReturn(true);
+        Mockito.when(rc.onTheMap(Mockito.any())).thenReturn(true);
+        Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
+        boolean nearbyEnemyECExists = M.guardEnemyEC();
+        assertTrue(nearbyEnemyECExists);
+    }
+
+    @Test
+    public void testGuardEnemyECWithNoNearbyEnemyEC() throws GameActionException {
+        setupTests();
+        int senseRadius = RobotType.MUCKRAKER.sensorRadiusSquared;
+        int actionRadius = RobotType.MUCKRAKER.actionRadiusSquared;
+        int ourId = 1;
+        ArrayList<RobotInfo> nearbyMuckrakers = new ArrayList<>();
+        int muckrakerIDOffset = 10;
+        for(int i = 0; i < 8; i++) {
+            RobotInfo muckrakerToAdd = new RobotInfo(i + muckrakerIDOffset,
+                    Team.A,
+                    RobotType.MUCKRAKER,
+                    1,
+                    1,
+                    new MapLocation(-1, 4-i));
+            nearbyMuckrakers.add(muckrakerToAdd);
+        }
+        Mockito.when(rc.senseNearbyRobots(senseRadius, Team.A)).thenReturn(nearbyMuckrakers.toArray(new RobotInfo[0]));
+        Mockito.when(rc.senseNearbyRobots(senseRadius, Team.B)).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.senseNearbyRobots(actionRadius, Team.B)).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getTeam()).thenReturn(Team.A);
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
+        Mockito.when(rc.getID()).thenReturn(ourId);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        Mockito.when(rc.getFlag(muckrakerIDOffset + 1)).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
+        Mockito.when(rc.canSenseLocation(Mockito.any())).thenReturn(true);
+        Mockito.when(rc.onTheMap(Mockito.any())).thenReturn(true);
+        Mockito.when(rc.canMove(Mockito.any())).thenReturn(true);
+        boolean nearbyEnemyECExists = M.guardEnemyEC();
+        assertTrue(nearbyEnemyECExists);
     }
 }

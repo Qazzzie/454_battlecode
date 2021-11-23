@@ -101,7 +101,7 @@ public class Muckraker {
 
         exposeUnits();
 
-        gaurdEnemyEC();
+        guardEnemyEC();
 
         // If we aren't doing grey EC stuff, and we aren't bouncy, space out from other
         // units.
@@ -275,7 +275,7 @@ public class Muckraker {
      * otherwise true, and muckraker prioritizes clustering around Enemy EC
      * @throws GameActionException if anything in here should cause one
      */
-    private boolean gaurdEnemyEC() throws GameActionException {
+    public boolean guardEnemyEC() throws GameActionException {
         //Dp we have backup? if so, raise flag
 
         int nearby_muckrakers = 0;
