@@ -1,11 +1,8 @@
 package SaZaPraYi;
 
 import battlecode.common.*;
-import com.sun.glass.ui.Robot;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.stubbing.OngoingStubbing;
 
 import static org.junit.Assert.*;
 
