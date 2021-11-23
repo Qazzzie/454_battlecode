@@ -1,8 +1,6 @@
 package SaZaPraYi;
 
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.RobotType;
+import battlecode.common.*;
 import org.junit.Test;
 import org.mockito.Mockito;
 import static org.junit.Assert.*;
@@ -83,5 +81,21 @@ public class EnlightenmentCenterTest {
         assertNotNull(ec.getNearbyAlliedRobots());
         assertNotNull(ec.getNearbyEnemyRobots());
         assertNotNull(ec.getNearbyGreyRobots());
+    }
+
+    @Test
+    public void testBuildRobotsBuildsRobot() throws GameActionException {
+        setupTests();
+        Team playerTeam = Team.A;
+        int senseRadius = RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared;
+        Mockito.when(rc.getTeam()).thenReturn(playerTeam);
+        Mockito.when(rc.getType()).thenReturn(RobotType.ENLIGHTENMENT_CENTER);
+        Mockito.when(rc.senseNearbyRobots(senseRadius)).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        Mockito.when(rc.onTheMap(Mockito.any(MapLocation.class))).thenReturn(true);
+        Mockito.when(rc.canBuildRobot(Mockito.any(RobotType.class), Mockito.any(Direction.class), Mockito.anyInt()))
+                .thenReturn(true);
+        boolean builtARobot = ec.buildRobots();
+        assertTrue(builtARobot);
     }
 }
