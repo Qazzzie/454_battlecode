@@ -101,6 +101,7 @@ public class MuckrakerTest {
     public void testHandleMovementAsBouncyMuckraker() throws GameActionException {
         setupTests();
         M.setMuckrakerType(Muckraker.muckrakerTypes.BOUNCY);
+        M.setLocationOfBase(new MapLocation(100,100));
         Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
         Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
         Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{});
@@ -114,6 +115,7 @@ public class MuckrakerTest {
     public void testHandleMovementAsNormalMuckraker() throws GameActionException {
         setupTests();
         M.setMuckrakerType(Muckraker.muckrakerTypes.NORMAL);
+        M.setLocationOfBase(new MapLocation(100,100));
         Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
         Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
         Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{});
@@ -121,5 +123,29 @@ public class MuckrakerTest {
         Mockito.when(rc.getID()).thenReturn(1);
         boolean shouldReturn = M.handleMovement();
         assertTrue(shouldReturn);
+    }
+
+    @Test
+    public void testHandlingOfNearbyGreyEC() throws GameActionException {
+        setupTests();
+        int senseRadius = RobotType.MUCKRAKER.sensorRadiusSquared;
+        int currentFlag = RobotUtils.flags.NOTHING.ordinal();
+        int ourId = 1;
+        RobotInfo greyEC = new RobotInfo(3,
+                Team.NEUTRAL,
+                RobotType.ENLIGHTENMENT_CENTER,
+                1,
+                1,
+                new MapLocation(0, 3));
+        Mockito.when(rc.senseRobotAtLocation(greyEC.location)).thenReturn(greyEC);
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{greyEC});
+        Mockito.when(rc.getTeam()).thenReturn(Team.A);
+        Mockito.when(rc.senseNearbyRobots(senseRadius, Team.A)).thenReturn(new RobotInfo[]{greyEC});
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
+        Mockito.when(rc.getID()).thenReturn(ourId);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        Mockito.when(rc.getFlag(ourId)).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        boolean encounteredGreyEC = M.handleGreyECEncounter(Team.A, senseRadius, currentFlag);
+        assertTrue(encounteredGreyEC);
     }
 }
