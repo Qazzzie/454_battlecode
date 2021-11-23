@@ -60,8 +60,8 @@ public class MuckrakerTest {
        RobotInfo greyEC = new RobotInfo(3,
            Team.NEUTRAL,
            RobotType.ENLIGHTENMENT_CENTER,
-           10,
-           10,
+           1,
+           1,
            new MapLocation(0, 3));
        RobotInfo nearbyMuckrakerWithFlag = new RobotInfo(6,
            Team.A,
@@ -97,6 +97,29 @@ public class MuckrakerTest {
       assertFalse(shouldReturn);
     }
 
+    @Test
+    public void testHandleMovementAsBouncyMuckraker() throws GameActionException {
+        setupTests();
+        M.setMuckrakerType(Muckraker.muckrakerTypes.BOUNCY);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getTeam()).thenReturn(Team.A);
+        Mockito.when(rc.getID()).thenReturn(1);
+        boolean shouldReturn = M.handleMovement();
+        assertTrue(shouldReturn);
+    }
 
-
+    @Test
+    public void testHandleMovementAsNormalMuckraker() throws GameActionException {
+        setupTests();
+        M.setMuckrakerType(Muckraker.muckrakerTypes.NORMAL);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0,0));
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt())).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getTeam()).thenReturn(Team.A);
+        Mockito.when(rc.getID()).thenReturn(1);
+        boolean shouldReturn = M.handleMovement();
+        assertTrue(shouldReturn);
+    }
 }
