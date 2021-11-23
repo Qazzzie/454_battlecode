@@ -26,7 +26,9 @@ public class RobotUtils {
         MUCKRAKER_FOUND_GREY_EC,
         MUCKRAKER_EC_COOLDOWN,
         SLANDERER_SPOTTED_ENEMY,
-        MUCKRAKER_FOUND_ENEMY_EC
+        MUCKRAKER_FOUND_ENEMY_EC,
+        MUCKRAKER_GAURDING_ENEMY_EC,
+        ANY
     }
 
 
@@ -208,5 +210,28 @@ public class RobotUtils {
             }
         }
         return moved;
+    }
+
+
+    public static RobotInfo [] senseRobotsWith(RobotType Rtype, RobotUtils.flags Rflag, boolean Myteam) throws GameActionException{
+        Team qualifyTeam;
+        if(Myteam)
+            qualifyTeam = rc.getTeam();
+        else
+            qualifyTeam = rc.getTeam().opponent();
+
+        ArrayList<RobotInfo> nearbyQualifyingUnits = new ArrayList<>();
+
+        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, qualifyTeam)) {
+            if (robot.getType() == Rtype) {
+                if(Rflag.ordinal() == RobotUtils.flags.ANY.ordinal()){
+                    nearbyQualifyingUnits.add(robot);
+                }
+                else if(Rflag.ordinal() == rc.getFlag(robot.getID())) {
+                    nearbyQualifyingUnits.add(robot);
+                }
+            }
+        }
+        return nearbyQualifyingUnits.toArray(new RobotInfo[0]);
     }
 }

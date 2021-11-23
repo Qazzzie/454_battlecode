@@ -68,6 +68,5 @@ public class SlandererTest {
         boolean result = s.avoidFlaggedSlanderer(Team.A);
         assertTrue(result);
     }
-
 }
 

@@ -28,10 +28,7 @@ public class Slanderer {
     public void run() throws GameActionException {
         Team enemy = rc.getTeam().opponent();
         Team friend = rc.getTeam();
-
-
         int sensorRadiusSquared = rc.getType().sensorRadiusSquared;
-//        Direction to_move = utils.randomDirection();
 
         // If there are enemies near the sensor radius set flag and move away from them.
         // Otherwise: avoid Flagging? look for flag signal and don't go to the direction
@@ -56,7 +53,6 @@ public class Slanderer {
      **/
 
     public boolean avoidEnemy(Team enemy) throws GameActionException {
-
         for (RobotInfo enemy_i : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, enemy)) {
             Direction away_from_enemy_i = rc.getLocation().directionTo(enemy_i.location).opposite();
             if (utils.tryMove(away_from_enemy_i)) {
@@ -101,6 +97,3 @@ public class Slanderer {
     }
 
 }
-
-
-
