@@ -256,12 +256,15 @@ public class Muckraker {
         return false;
     }
 
-    private void back(int currentFlag)throws GameActionException{
+    public boolean back(int currentFlag)throws GameActionException{
         // If it's been long enough and we have a cooldown flag, go back to normal.
         if (currentFlag == RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal()) {
-            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN)
+            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN) {
                 rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
+                return true;
+            }
         }
+        return false;
     }
 
     /**

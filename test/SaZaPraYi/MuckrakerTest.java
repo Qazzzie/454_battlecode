@@ -238,8 +238,7 @@ public class MuckrakerTest {
         Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
         Mockito.when(rc.getFlag(ourId)).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
         Mockito.when(rc.getFlag(nearbyMuckrakerWithFlag.ID)).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
-        boolean encounteredGreyEC = M.handleGreyECFollow();
-        assertTrue(encounteredGreyEC);
+        M.handleGreyECFollow();
     }
 
     @Test
