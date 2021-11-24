@@ -1,11 +1,8 @@
 package SaZaPraYi;
 
 import battlecode.common.*;
-import com.sun.glass.ui.Robot;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.stubbing.OngoingStubbing;
 
 import static org.junit.Assert.*;
 
@@ -79,6 +76,7 @@ public class RobotUtilsTest {
         assertTrue(moved);
     }
 
+<<<<<<< HEAD
 //    @Test
 //    public void TestSenseRobotsWith() throws GameActionException{
 //        setupTests();
@@ -98,4 +96,32 @@ public class RobotUtilsTest {
 //        unitZ = utils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, false);
 //        assertEquals(unitZ[0].team, Team.B);
 //    }
+=======
+    @Test
+    public void TestSenseRobotsWith() throws GameActionException{
+        setupTests();
+
+        Team player = Team.A;
+        int senseRadius = RobotType.MUCKRAKER.sensorRadiusSquared;
+        RobotInfo unitA = new RobotInfo(3,
+                player,
+                RobotType.MUCKRAKER,
+                10,
+                10,
+                new MapLocation(0, 3));
+
+        RobotInfo[] nearbyUnits = new RobotInfo[]{unitA};
+
+        Mockito.when(rc.senseNearbyRobots(senseRadius, player.opponent())).thenReturn(nearbyUnits);
+        Mockito.when(rc.getFlag(unitA.getID())).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
+        Mockito.when(rc.getTeam()).thenReturn(player);
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+
+        RobotInfo [] unitZ = new RobotInfo[]{};
+
+        unitZ = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, false);
+
+        assertEquals(unitZ[0].influence , 10);
+    }
+>>>>>>> e98e7e08e415c9d9de86922f9c6264ebaecc186b
 }
