@@ -446,4 +446,25 @@ public class Muckraker {
         muckrakerType = type;
         return true;
     }
+
+    /**
+     * This method will set going to base boolean
+     * @param toSet the boolean to set
+     * @return true if set
+     */
+    public boolean setGoingToBase(boolean toSet) {
+        goingToBase = toSet;
+        return true;
+    }
+
+    /**
+     * This method will set the location of the found grey EC
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfEC(MapLocation toSet) {
+        locationOfEC = toSet;
+        return true;
+    }
+
 }
