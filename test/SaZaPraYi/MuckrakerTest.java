@@ -76,7 +76,6 @@ public class MuckrakerTest {
                     10,
                     new MapLocation(2, -2));
 
-
             Mockito.when(rc.getFlag(unitB.getID())).thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
             Mockito.when(rc.senseRobotAtLocation(unitA.location)).thenReturn(unitA);
             Mockito.when(rc.senseRobotAtLocation(unitB.location)).thenReturn(unitB);
@@ -143,6 +142,7 @@ public class MuckrakerTest {
            .thenReturn(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
        boolean shouldReturn = M.handleGreyECFollow();
        assertTrue(shouldReturn);
+
     }
 
     @Test

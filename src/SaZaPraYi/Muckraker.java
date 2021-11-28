@@ -3,6 +3,7 @@ package SaZaPraYi;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Random;
 
 public class Muckraker {
@@ -55,7 +56,7 @@ public class Muckraker {
     private static final double BOUNCY_PERCENT = 0.2;
 
     // Muckrakers needed to activate swarming around enemy EC behavior
-    public static final int MUCKRAKERS_NEEDED_TO_SWARM = 6;
+    public static final int MUCKRAKERS_NEEDED_TO_SWARM = 4;
 
     // Number to seed random generator for movement
     private static final int RAND_SPAWN = 10;
@@ -95,17 +96,15 @@ public class Muckraker {
      * @throws GameActionException if anything would cause one.
      */
     public void run() throws GameActionException {
-
-        Team enemy = rc.getTeam().opponent();
-        int senseRadius = rc.getType().sensorRadiusSquared;
-        int actionRadius = rc.getType().actionRadiusSquared;
-
         // If we don't have a home base location, we probably just got spawned,
         // and there is probably one nearby, so let's set it.
         if (locationOfBase == null)
-            for (RobotInfo robot : rc.senseNearbyRobots(senseRadius))
+            for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared))
                 if (robot.getType() == RobotType.ENLIGHTENMENT_CENTER)
                     locationOfBase = robot.getLocation();
+
+        //Avoid politician
+        avoidPolitician();
 
         //first priority
         exposeUnits();
@@ -117,10 +116,6 @@ public class Muckraker {
         // Do grey EC logic. Return if that's what we should do
         if(handleGreyECFollow())
             return;
-
-        //Avoid politician
-        avoidPolitician();
-
 
         // If we aren't doing grey EC stuff, and we aren't bouncy, space out from other
         // units.
@@ -160,7 +155,6 @@ public class Muckraker {
             moved = true;
         }
 
-
         //Genrate random number from 0-10 so that we could have muckrakers move randomly 3 times
         //run away from EC 7 times within 10 moves
         Random rand = new Random();
@@ -171,15 +165,14 @@ public class Muckraker {
         else
             utils.tryMove((utils.randomDirection()));
 
-
         // If we aren't doing grey EC stuff, space out from other units.
         if(rc.getFlag(rc.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
             utils.moveAwayFromOtherUnits();}
-
         //if (utils.tryMove(utils.randomDirection()))
         //    System.out.println("I moved!");
 
         return moved;
+
     }
 
     /**
@@ -191,9 +184,7 @@ public class Muckraker {
     public boolean handleGreyECFollow() throws GameActionException {
         Team player = rc.getTeam();
         int senseRadius = rc.getType().sensorRadiusSquared;
-
-        int currentFlag = rc.getFlag(rc.getID());
-        if (currentFlag == RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
+        if (rc.getFlag(rc.getID()) == RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
             // If we haven't finished our grey EC quest by a certain round, deflag.
             // This prevents permanently stuck muckrakers and politicians.
             if (rc.getRoundNum() > turnStartedGreyECQuest + TURNS_BEFORE_SELF_DEFLAG) {
@@ -250,9 +241,8 @@ public class Muckraker {
             return true;
         }
 
-
-        back(currentFlag);
-        handleGreyECEncounter(player,senseRadius,currentFlag);
+        back(rc.getFlag(rc.getID()));
+        handleGreyECEncounter(player,senseRadius,rc.getFlag(rc.getID()));
         return false;
     }
 
@@ -302,86 +292,115 @@ public class Muckraker {
      * @throws GameActionException if anything in here should cause one
      */
     public boolean guardEnemyEC() throws GameActionException {
-        //Dp we have backup? if so, raise flag
+        RobotInfo [] enemyECs = RobotUtils.senseRobotsWith(RobotType.ENLIGHTENMENT_CENTER, RobotUtils.flags.ANY, false);
+        RobotInfo [] Backup = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.ANY, true);
 
-        if(rc.getFlag(rc.getID()) == RobotUtils.flags.MUCKRAKER_GAURDING_ENEMY_EC.ordinal()) {
+        //Do we have backup? if so, raise flag and find nearby enemy EC's with raised flag if there are enough muckrakers around
+        if(Backup.length >= MUCKRAKERS_NEEDED_TO_SWARM && enemyECs.length > 0) {
+            rc.setFlag(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
+            // create list of empty spots near enemy EC
+            Direction enemy_ec_direction = rc.getLocation().directionTo(enemyECs[0].location);
+            MapLocation enemy_ec_location = enemyECs[0].location;
+
+            System.out.println("Enemy EC spotted!");
+
+            ArrayList<MapLocation> nearbyAdjacentTiles = new ArrayList<>();
+            // First, put all the adjacent nearby tiles into a list...
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    if (j == 0 && i == 0) continue; // This would be the tile itself...
+
+                    MapLocation temp = new MapLocation(enemy_ec_location.x + i, enemy_ec_location.y + j);
+
+                    if (rc.canSenseLocation(temp)) {
+                        if (!rc.onTheMap(temp)) continue; //not on the map
+                        if (rc.getLocation() == temp) {//we are already on an empty spot
+                            System.out.println("Defending Enemy EC, Raising flag!");
+                            rc.setFlag(RobotUtils.flags.MUCKRAKER_GUARDING_ENEMY_EC.ordinal());
+                            exposeUnits();
+                            return true;
+                        }
+                        if (rc.senseRobotAtLocation(temp) == null)
+                            nearbyAdjacentTiles.add(temp);
+                    }
+                }
+            }
+            if(moveTowardsEmptyECLocation(nearbyAdjacentTiles))
+                return true;
+
+            if(followEnemyECFlaggingMuckrakers())
+                return true;
+        }
+
+        return false;
+    }
+
+    //takes in an array of adjacent tiles and moves the muckraker towards one of them
+    public boolean moveTowardsEmptyECLocation(ArrayList<MapLocation> nearbyAdjacentTiles)throws GameActionException {
+        //move towards empty spots by enemy EC
+        if (nearbyAdjacentTiles.size() > 0) {
+            for (int i = 0; i <= nearbyAdjacentTiles.size(); i++) {
+                if (utils.tryMove(rc.getLocation().directionTo(nearbyAdjacentTiles.get(i)))) {
+                    System.out.println("M -> G-EC");
+                    return true;
+
+                } else if (utils.tryMove(rc.getLocation().directionTo(nearbyAdjacentTiles.get(i)).rotateLeft())) {
+                    //try to move to a spot next to the one nearby.
+                        System.out.println("M -> G-EC2");
+                        return true;
+                } else if (utils.tryMove(rc.getLocation().directionTo(nearbyAdjacentTiles.get(i)).rotateRight())) {
+                    //try to move to a spot next to the one nearby.
+                    System.out.println("M -> G-EC3");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean alreadyGuarding(RobotInfo [] enemyECs) throws GameActionException {
+        ArrayList<MapLocation> nearbyAdjacentTiles = new ArrayList<>();
+
+        if(rc.getFlag(rc.getID()) == RobotUtils.flags.MUCKRAKER_GUARDING_ENEMY_EC.ordinal()) {
+            System.out.println("Already guarding Enemy EC!");
             exposeUnits();
             return true;
         }
 
-        //Do we have backup? if so, raise flag
-        int nearby_muckrakers = 0;
-        MapLocation [] robotsNearby =  rc.detectNearbyRobots();
-        for (RobotInfo allyMuckraker : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam())) {
-            if (allyMuckraker.getType() == RobotType.MUCKRAKER) {
-                if (rc.getFlag(allyMuckraker.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal())
-                    continue;
-                nearby_muckrakers++;
+        if(enemyECs.length >= 1){
+            MapLocation enemy_ec_location = enemyECs[0].location;
+            System.out.println("Enemy EC spotted!");
+            // First, put all the adjacent nearby tiles into a list...
+            for (int i = -1; i <= 1; i++) {
+                for (int j = -1; j <= 1; j++) {
+                    if (j == 0 && i == 0) continue; // This would be the tile itself...
+
+                    MapLocation temp = new MapLocation(enemy_ec_location.x + i, enemy_ec_location.y + j);
+
+                    if (rc.canSenseLocation(temp)) {
+                        if (!rc.onTheMap(temp)) continue; //not on the map
+                        if (rc.getLocation() == temp) {//we are already on an empty spot
+                            System.out.println("Defending Enemy EC, Raising flag!");
+                            rc.setFlag(RobotUtils.flags.MUCKRAKER_GUARDING_ENEMY_EC.ordinal());
+                            exposeUnits();
+                            return true;
+                        }
+                        if (rc.senseRobotAtLocation(temp) == null)
+                            nearbyAdjacentTiles.add(temp);
+                    }
+                }
             }
         }
-
-        if(nearby_muckrakers >= MUCKRAKERS_NEEDED_TO_SWARM)
-            //find nearby enemy EC's with raised flag if there are enough muckrakers around
-//            RobotInfo [] enemyECs = new RobotInfo[]{};
-//            enemyECs = RobotUtils.senseRobotsWith(RobotType.ENLIGHTENMENT_CENTER, RobotUtils.flags.ANY, false);
-            for (RobotInfo enemy_i : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
-                if (enemy_i.getType() == RobotType.ENLIGHTENMENT_CENTER) {
-                    rc.setFlag(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
-                    // create list of empty spots near enemy EC
-                    Direction enemy_ec_direction = rc.getLocation().directionTo(enemy_i.location);
-                    MapLocation enemy_ec_location = enemy_i.location;
-                    System.out.println("Enemy EC spotted!");
-                    ArrayList<MapLocation> nearbyAdjacentTiles = new ArrayList<>();
-                    // First, put all the adjacent nearby tiles into a list...
-                    for (int i = -1; i <= 1; i++) {
-                        for (int j = -1; j <= 1; j++) {
-                            if (j == 0 && i == 0) continue; // This would be the tile itself...
-                            MapLocation temp = new MapLocation(enemy_ec_location.x + i, enemy_ec_location.y + j);
-
-                            if (rc.canSenseLocation(temp)) {
-                                if (!rc.onTheMap(temp)) continue; //not on the map
-                                if (rc.getLocation() == temp) {//we are already on an empty spot
-                                    System.out.println("Defending Enemy EC!");
-                                    rc.setFlag(RobotUtils.flags.MUCKRAKER_GAURDING_ENEMY_EC.ordinal());
-                                    exposeUnits();//
-                                    return true;
-                                }
-                                if (rc.senseRobotAtLocation(temp) == null)
-                                    nearbyAdjacentTiles.add(temp);
-                            }
-                        }
-                    }
-                    //move towards empty spots by enemy EC
-                    if (nearbyAdjacentTiles.size() > 0) {
-                        for (int i = 0; i <= nearbyAdjacentTiles.size(); i++) {
-                            if (utils.tryMove(rc.getLocation().directionTo(nearbyAdjacentTiles.get(i)))) {
-                                System.out.println("moving towards enemy EC");
-                                exposeUnits();
-                                return true;
-                            } else if (utils.tryMove(utils.getDirectionOfRandomAdjacentEmptyTile(nearbyAdjacentTiles.get(i)))) {
-                                System.out.println("moving towards enemy EC, excuse me");
-                                exposeUnits();
-                                return true;
-                            }
-                        }
-                    }
-                } else rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
-            }
-        followEnemyECFlaggingMuckrakers();
-        utils.moveAwayFromOtherUnits();
         return false;
     }
 
-
     public boolean followEnemyECFlaggingMuckrakers() throws GameActionException{
-        for (RobotInfo allyMuckraker : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam())) {
-            if (allyMuckraker.getType() == RobotType.MUCKRAKER && rc.getFlag(allyMuckraker.getID()) == RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal() ){
-//                if(rc.canMove())
-                if(utils.tryMove(rc.getLocation().directionTo(allyMuckraker.location))){
+        RobotInfo [] allyMuckrakers = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC, true);
+        for(int i = 0; i == allyMuckrakers.length; i++){
+                if(utils.tryMove(rc.getLocation().directionTo(allyMuckrakers[i].location))){
                     System.out.println("Following ally muckraker to Enemy EC!");
                     return true;
                 }
-            }
         }
         return false;
     }
@@ -390,8 +409,7 @@ public class Muckraker {
         for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
             if (robot.getType() == RobotType.POLITICIAN) {
                 Direction enemy_loc = rc.getLocation().directionTo(robot.location);
-                if(rc.canMove(enemy_loc.opposite())) {
-                    utils.tryMove(enemy_loc.opposite());
+                if(utils.tryMove(enemy_loc.opposite())) {
                     return true;
                 }
             }
@@ -401,10 +419,7 @@ public class Muckraker {
 
     // expose nearby units
     public boolean exposeUnits() throws GameActionException{
-        Team enemy = rc.getTeam().opponent();
-        int senseRadius = rc.getType().sensorRadiusSquared;
-        int actionRadius = rc.getType().actionRadiusSquared;
-        for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {
+        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().actionRadiusSquared, rc.getTeam().opponent())) {
             if (robot.type.canBeExposed()) {
                 // It's a slanderer... go get them
                 if (rc.canExpose(robot.location)) {

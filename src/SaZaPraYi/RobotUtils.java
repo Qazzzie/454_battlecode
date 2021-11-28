@@ -27,7 +27,7 @@ public class RobotUtils {
         MUCKRAKER_EC_COOLDOWN,
         SLANDERER_SPOTTED_ENEMY,
         MUCKRAKER_FOUND_ENEMY_EC,
-        MUCKRAKER_GAURDING_ENEMY_EC,
+        MUCKRAKER_GUARDING_ENEMY_EC,
         ANY
     }
 
