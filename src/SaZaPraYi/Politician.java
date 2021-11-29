@@ -89,26 +89,7 @@ public class Politician {
         }
 
         // If there's a Muckraker nearby that has a Grey EC flag, let's follow it.
-
-//        RobotInfo [] muckrakerToFollow = RobotUtils.senseRobotsWith(RobotType.MUCKRAKER, RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC, true);
-        RobotInfo muckrakerToFollow = nearbyMuckrakerWithGreyECFlag();
-
-        if(muckrakerToFollow != null) {
-            // follow it
-            MapLocation location = rc.getLocation();
-            MapLocation muckrakersLocation = muckrakerToFollow.getLocation();
-            Direction directionToMuckraker = location.directionTo(muckrakersLocation);
-            int distanceToMuckraker = location.distanceSquaredTo(muckrakersLocation);
-            utils.tryMove(directionToMuckraker);
-            // If we're too close to the muckraker, move away
-            if(distanceToMuckraker < DISTANCE_TOO_CLOSE_TO_MUCKRAKER) {
-                utils.tryMove(directionToMuckraker.opposite());
-            }
-            return;
-        }
-
         if (handleNearbyGreyECMuckraker()) return;
-
 
         // Move away from other friendly units
         utils.moveAwayFromOtherUnits();
@@ -116,20 +97,8 @@ public class Politician {
         // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
         convictOwnTeam(usableConviction,actionRadius);
 
-
-        /*
-        if (attackable.length != 0 && rc.canEmpower(actionRadius)) {
-                System.out.println("empowering...");
-                rc.empower(actionRadius);
-                System.out.println("empowered");
-                return;
-            }
-        */
-
         // If none of the above conditions are satisfied allow Politicians to move in random directions.
         utils.tryMove(utils.randomDirection());
-        //if (utils.tryMove(utils.randomDirection()))
-         //   System.out.println("I moved!");
     }
 
     public boolean handleNearbyGreyECMuckraker() throws GameActionException {
