@@ -178,7 +178,9 @@ public class Politician {
 
     public boolean empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
+            //int noOfNeutralEc = rc.senseNearbyRobots(actionRadius, neutralEC).length;
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
+            //if(noOfNeutralEc > 0) {
                 if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
                 return true;
             } else {
