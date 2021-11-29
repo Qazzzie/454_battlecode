@@ -256,12 +256,15 @@ public class Muckraker {
         return false;
     }
 
-    private void back(int currentFlag)throws GameActionException{
+    public boolean back(int currentFlag)throws GameActionException{
         // If it's been long enough and we have a cooldown flag, go back to normal.
         if (currentFlag == RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal()) {
-            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN)
+            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN) {
                 rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -341,7 +344,7 @@ public class Muckraker {
                             if (rc.canSenseLocation(temp)) {
                                 if (!rc.onTheMap(temp)) continue; //not on the map
                                 if (rc.getLocation() == temp) {//we are already on an empty spot
-                                    System.out.println("Defending Enemy EC!");
+                                    //System.out.println("Defending Enemy EC!");
                                     rc.setFlag(RobotUtils.flags.MUCKRAKER_GAURDING_ENEMY_EC.ordinal());
                                     exposeUnits();//
                                     return true;
@@ -359,7 +362,7 @@ public class Muckraker {
                                 exposeUnits();
                                 return true;
                             } else if (utils.tryMove(utils.getDirectionOfRandomAdjacentEmptyTile(nearbyAdjacentTiles.get(i)))) {
-                                System.out.println("moving towards enemy EC, excuse me");
+                               // System.out.println("moving towards enemy EC, excuse me");
                                 exposeUnits();
                                 return true;
                             }
@@ -474,4 +477,25 @@ public class Muckraker {
         muckrakerType = type;
         return true;
     }
+
+    /**
+     * This method will set going to base boolean
+     * @param toSet the boolean to set
+     * @return true if set
+     */
+    public boolean setGoingToBase(boolean toSet) {
+        goingToBase = toSet;
+        return true;
+    }
+
+    /**
+     * This method will set the location of the found grey EC
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfEC(MapLocation toSet) {
+        locationOfEC = toSet;
+        return true;
+    }
+
 }

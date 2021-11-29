@@ -3,6 +3,9 @@ package SaZaPraYi;
 import battlecode.common.*;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+
 import static org.junit.Assert.*;
 
 public class EnlightenmentCenterTest {
@@ -91,6 +94,59 @@ public class EnlightenmentCenterTest {
         Mockito.when(rc.getTeam()).thenReturn(playerTeam);
         Mockito.when(rc.getType()).thenReturn(RobotType.ENLIGHTENMENT_CENTER);
         Mockito.when(rc.senseNearbyRobots(senseRadius)).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        Mockito.when(rc.onTheMap(Mockito.any(MapLocation.class))).thenReturn(true);
+        Mockito.when(rc.canBuildRobot(Mockito.any(RobotType.class), Mockito.any(Direction.class), Mockito.anyInt()))
+                .thenReturn(true);
+        boolean builtARobot = ec.buildRobots();
+        assertTrue(builtARobot);
+    }
+
+    @Test
+    public void testBuildRobotsWithNearbyEnemies() throws GameActionException {
+        setupTests();
+        Team playerTeam = Team.A;
+        int senseRadius = RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared;
+        ArrayList<RobotInfo> nearbyEnemies = new ArrayList<RobotInfo>();
+        for(int i = 0; i < 5; i++) {
+            RobotInfo enemyToAdd = new RobotInfo(i,
+                    playerTeam.opponent(),
+                    RobotType.MUCKRAKER,
+                    1,
+                    1,
+                    new MapLocation(2, i-5));
+            nearbyEnemies.add(enemyToAdd);
+        }
+        Mockito.when(rc.getTeam()).thenReturn(playerTeam);
+        Mockito.when(rc.getType()).thenReturn(RobotType.ENLIGHTENMENT_CENTER);
+        Mockito.when(rc.senseNearbyRobots(senseRadius)).thenReturn(nearbyEnemies.toArray(new RobotInfo[0]));
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        Mockito.when(rc.onTheMap(Mockito.any(MapLocation.class))).thenReturn(true);
+        Mockito.when(rc.canBuildRobot(Mockito.any(RobotType.class), Mockito.any(Direction.class), Mockito.anyInt()))
+                .thenReturn(true);
+        boolean builtARobot = ec.buildRobots();
+        assertTrue(builtARobot);
+    }
+
+    @Test
+    public void testBuildRobotsWithNearbySlanderers() throws GameActionException {
+        setupTests();
+        Team playerTeam = Team.A;
+        int senseRadius = RobotType.ENLIGHTENMENT_CENTER.sensorRadiusSquared;
+        ArrayList<RobotInfo> nearbySlanderers = new ArrayList<>();
+        int slanderersToSpawn = 10;
+        for(int i = 0; i < slanderersToSpawn; i++) {
+            RobotInfo slandererToSpawn = new RobotInfo(i,
+                    playerTeam,
+                    RobotType.SLANDERER,
+                    1,
+                    1,
+                    new MapLocation(2, i-slanderersToSpawn));
+            nearbySlanderers.add(slandererToSpawn);
+        }
+        Mockito.when(rc.getTeam()).thenReturn(playerTeam);
+        Mockito.when(rc.getType()).thenReturn(RobotType.ENLIGHTENMENT_CENTER);
+        Mockito.when(rc.senseNearbyRobots(senseRadius)).thenReturn(nearbySlanderers.toArray(new RobotInfo[0]));
         Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
         Mockito.when(rc.onTheMap(Mockito.any(MapLocation.class))).thenReturn(true);
         Mockito.when(rc.canBuildRobot(Mockito.any(RobotType.class), Mockito.any(Direction.class), Mockito.anyInt()))
