@@ -2,12 +2,14 @@ package SaZaPraYi;
 
 
 
-import org.mockito.Mockito;
-import static org.junit.Assert.*;
 import battlecode.common.*;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class MuckrakerTest {
         private RobotController rc;
@@ -21,7 +23,7 @@ public class MuckrakerTest {
         }
 
         @Test
-        public void exposeUnits() throws GameActionException{
+        public void testexposeUnits() throws GameActionException{
             setupTests();
 
             setupTests();
@@ -110,6 +112,18 @@ public class MuckrakerTest {
             boolean result = M.avoidPolitician();
             assertTrue(result);
         }
+
+    @Test
+    public void testAvoidPoliticianFalse() throws GameActionException {
+        setupTests();
+
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getType()).thenReturn(RobotType.POLITICIAN);
+        Mockito.when(rc.getTeam()).thenReturn(Team.B);
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = M.avoidPolitician();
+        assertFalse(result);
+    }
 
     @Test
     public void testHandleGreyEcFollowWhenNearbyGreyEC() throws GameActionException {
@@ -336,4 +350,7 @@ public class MuckrakerTest {
         boolean nearbyEnemyECExists = M.guardEnemyEC();
         assertFalse(nearbyEnemyECExists);
     }
+
+
+
 }

@@ -1,18 +1,9 @@
 package SaZaPraYi;
 
 
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-
 import battlecode.common.*;
-
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import static org.junit.Assert.*;
 
@@ -22,10 +13,13 @@ public class PoliticianTest {
     private RobotUtils utils;
     private Politician p;
 
+    int a = 100;
+
     private void setupTests(){
         rc = Mockito.mock(RobotController.class);
         utils = new RobotUtils(rc);
         p = new Politician(rc,utils);
+
     }
 
     @Test
@@ -164,7 +158,7 @@ public class PoliticianTest {
     }
 
     @Test
-    public void testEmpowerNeutralECWithNoNearbyEC() throws GameActionException {
+    public void testEmpowerNeutralECFalse() throws GameActionException {
         setupTests();
         Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any()))
                 .thenReturn(new RobotInfo[]{});
