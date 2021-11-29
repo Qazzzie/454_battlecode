@@ -426,23 +426,6 @@ public class Muckraker {
     }
 
 
-//    public boolean avoidPolitician()throws GameActionException {
-//
-//        List<Direction> all_dir= new ArrayList<Direction>();
-//
-//        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent()))
-//        {
-//            if (robot.getType() == RobotType.POLITICIAN) {
-//                Direction enemy_loc = rc.getLocation().directionTo(robot.location);
-//                all_dir.add(enemy_loc);
-//                if(rc.canMove(enemy_loc.opposite())) {
-//                    utils.tryMove(enemy_loc.opposite());
-//                    return true;
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
     // expose nearby units
     public boolean exposeUnits() throws GameActionException{
