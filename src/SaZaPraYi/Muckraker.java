@@ -344,7 +344,7 @@ public class Muckraker {
                             if (rc.canSenseLocation(temp)) {
                                 if (!rc.onTheMap(temp)) continue; //not on the map
                                 if (rc.getLocation() == temp) {//we are already on an empty spot
-                                    System.out.println("Defending Enemy EC!");
+                                    //System.out.println("Defending Enemy EC!");
                                     rc.setFlag(RobotUtils.flags.MUCKRAKER_GAURDING_ENEMY_EC.ordinal());
                                     exposeUnits();//
                                     return true;
@@ -362,7 +362,7 @@ public class Muckraker {
                                 exposeUnits();
                                 return true;
                             } else if (utils.tryMove(utils.getDirectionOfRandomAdjacentEmptyTile(nearbyAdjacentTiles.get(i)))) {
-                                System.out.println("moving towards enemy EC, excuse me");
+                               // System.out.println("moving towards enemy EC, excuse me");
                                 exposeUnits();
                                 return true;
                             }
