@@ -97,20 +97,8 @@ public class Politician {
         // If no enemies are found nearby within defined round, convict own nearby team members after every defined interval of rounds.
         convictOwnTeam(usableConviction,actionRadius);
 
-
-        /*
-        if (attackable.length != 0 && rc.canEmpower(actionRadius)) {
-                System.out.println("empowering...");
-                rc.empower(actionRadius);
-                System.out.println("empowered");
-                return;
-            }
-        */
-
         // If none of the above conditions are satisfied allow Politicians to move in random directions.
         utils.tryMove(utils.randomDirection());
-        //if (utils.tryMove(utils.randomDirection()))
-         //   System.out.println("I moved!");
     }
 
     public boolean handleNearbyGreyECMuckraker() throws GameActionException {
@@ -160,7 +148,7 @@ public class Politician {
      * @return the RobotInfo object of a nearby muckraker that has a grey EC flag, otherwise null.
      * @throws GameActionException if anything in here should cause one
      */
-    private RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
+    public RobotInfo nearbyMuckrakerWithGreyECFlag() throws GameActionException {
         int senseRadius = rc.getType().sensorRadiusSquared;
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius)) {
             if(robot.getType() == RobotType.MUCKRAKER) {
@@ -187,9 +175,12 @@ public class Politician {
         }
     }
 
+
     public boolean empowerNeutralEC(int senseRadius, int actionRadius, Team neutralEC) throws GameActionException {
         for(RobotInfo robot : rc.senseNearbyRobots(senseRadius, neutralEC)) {
+            //int noOfNeutralEc = rc.senseNearbyRobots(actionRadius, neutralEC).length;
             if(rc.senseNearbyRobots(actionRadius, neutralEC).length > 0) {
+            //if(noOfNeutralEc > 0) {
                 if(rc.canEmpower(actionRadius)) rc.empower(actionRadius);
                 return true;
             } else {
@@ -200,6 +191,7 @@ public class Politician {
         return false;
     }
 
+
     /**
      * Handles conviction of nearby friendly units
      *
@@ -208,6 +200,7 @@ public class Politician {
      * @return true if speech was given, false otherwise
      * @throws GameActionException if anything in here should cause one
      */
+
     public boolean convictOwnTeam(int usableConviction, int actionRadius) throws GameActionException {
         if (rc.getRoundNum() >= MINIMUM_ROUNDS_BEFORE_CONVICTION){
             if(rc.getRoundNum() % CONVICT_EVERY_N_ROUNDS == 0 && usableConviction > 0 && rc.canEmpower(actionRadius)){

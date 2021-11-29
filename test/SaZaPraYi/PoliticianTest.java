@@ -1,5 +1,6 @@
 package SaZaPraYi;
 
+
 import battlecode.common.*;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -12,10 +13,13 @@ public class PoliticianTest {
     private RobotUtils utils;
     private Politician p;
 
+    int a = 100;
+
     private void setupTests(){
         rc = Mockito.mock(RobotController.class);
         utils = new RobotUtils(rc);
         p = new Politician(rc,utils);
+
     }
 
     @Test
@@ -65,6 +69,7 @@ public class PoliticianTest {
         int result = p.getUsableConviction(initialConviction, noofNearByRobots, empowerFactor);
         assertEquals(expectedResult, result);
     }
+
 
     @Test
     public void testHandleNearbyGreyECMuckrakerHasMuckraker() throws GameActionException {
@@ -153,7 +158,7 @@ public class PoliticianTest {
     }
 
     @Test
-    public void testEmpowerNeutralECWithNoNearbyEC() throws GameActionException {
+    public void testEmpowerNeutralECFalse() throws GameActionException {
         setupTests();
         Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any()))
                 .thenReturn(new RobotInfo[]{});
@@ -185,4 +190,5 @@ public class PoliticianTest {
         boolean result = p.convictOwnTeam(10, 10);
         assertFalse(result);
     }
+
 }

@@ -54,8 +54,16 @@ public class Muckraker {
     // Percent of the time a Muckraker should be a "bouncy" type
     private static final double BOUNCY_PERCENT = 0.2;
 
+    // Muckrakers needed to activate swarming around enemy EC behavior
+    public static final int MUCKRAKERS_NEEDED_TO_SWARM = 6;
+
+    // Number to seed random generator for movement
+    private static final int RAND_SPAWN = 10;
+    // Number that is  compared to randomly generated number num
+    private static final int NUM_DEC_TO_SPAWN = 3;
+
     // Enum for different "species" of muckrakers
-    enum muckrakerTypes {
+    public enum muckrakerTypes {
         NORMAL, BOUNCY
     }
 
@@ -99,28 +107,26 @@ public class Muckraker {
                 if (robot.getType() == RobotType.ENLIGHTENMENT_CENTER)
                     locationOfBase = robot.getLocation();
 
+        //first priority
         exposeUnits();
 
-        gaurdEnemyEC();
+        //Gaurd enemy EC's if there are enough muckrakers around
+        if(guardEnemyEC())
+            return;
+
+        // Do grey EC logic. Return if that's what we should do
+        if(handleGreyECFollow())
+            return;
+
+        //Avoid politician
+        avoidPolitician();
+
 
         // If we aren't doing grey EC stuff, and we aren't bouncy, space out from other
         // units.
         if (muckrakerType != muckrakerTypes.BOUNCY
                 && rc.getFlag(rc.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal())
             utils.moveAwayFromOtherUnits();
-
-        // Do grey EC logic. Return if that's what we should do
-        boolean shouldReturn = handleGreyECFollow();
-        if (shouldReturn)
-            return;
-
-        // Avoid politician
-        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, enemy)) {
-            if (robot.getType() == RobotType.POLITICIAN) {
-                Direction enemy_loc = rc.getLocation().directionTo(robot.location);
-                utils.tryMove(enemy_loc.opposite());
-            }
-        }
 
         handleMovement();
     }
@@ -130,8 +136,9 @@ public class Muckraker {
      *
      * @throws GameActionException if anything should cause one
      */
-    private void handleMovement() throws GameActionException {
+    public boolean handleMovement() throws GameActionException {
         Direction toMove;
+        boolean moved = false;
         if (muckrakerType == muckrakerTypes.BOUNCY) {
             if (bouncyMuckrakerPointToMoveTo == null || utils.isTouchingTheWall()) {
                 bouncyMuckrakerPointToMoveTo = utils.randomLocationOutsideOfMapToMoveTo();
@@ -141,16 +148,38 @@ public class Muckraker {
             //Genrate random number from 0-10 so that we could have muckrakers move randomly 3 times
             //run away from EC 7 times within 10 moves
             Random rand = new Random();
-            int num = rand.nextInt(10);
+            int num = rand.nextInt(RAND_SPAWN);
 
-            if(num>3)
+            if(num>NUM_DEC_TO_SPAWN)
                 toMove = rc.getLocation().directionTo(locationOfBase).opposite();
             else
                 toMove = utils.randomDirection();
         }
         if (!utils.tryMove(toMove)) {
             utils.tryMove(utils.getDirectionOfRandomAdjacentEmptyTile(rc.getLocation()));
+            moved = true;
         }
+
+
+        //Genrate random number from 0-10 so that we could have muckrakers move randomly 3 times
+        //run away from EC 7 times within 10 moves
+        Random rand = new Random();
+        int num = rand.nextInt(RAND_SPAWN);
+
+        if(num>NUM_DEC_TO_SPAWN)
+            utils.tryMove(rc.getLocation().directionTo(locationOfBase).opposite());
+        else
+            utils.tryMove((utils.randomDirection()));
+
+
+        // If we aren't doing grey EC stuff, space out from other units.
+        if(rc.getFlag(rc.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal()) {
+            utils.moveAwayFromOtherUnits();}
+
+        //if (utils.tryMove(utils.randomDirection()))
+        //    System.out.println("I moved!");
+
+        return moved;
     }
 
     /**
@@ -159,7 +188,7 @@ public class Muckraker {
      * @return true if we should return from run(), otherwise false.
      * @throws GameActionException if anything in here should cause one
      */
-    private boolean handleGreyECFollow() throws GameActionException {
+    public boolean handleGreyECFollow() throws GameActionException {
         Team player = rc.getTeam();
         int senseRadius = rc.getType().sensorRadiusSquared;
 
@@ -223,19 +252,31 @@ public class Muckraker {
 
 
         back(currentFlag);
-        setflag(player,senseRadius,currentFlag);
+        handleGreyECEncounter(player,senseRadius,currentFlag);
         return false;
     }
 
-    private void back(int currentFlag)throws GameActionException{
+    public boolean back(int currentFlag)throws GameActionException{
         // If it's been long enough and we have a cooldown flag, go back to normal.
         if (currentFlag == RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal()) {
-            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN)
+            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN) {
                 rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
+                return true;
+            }
         }
+        return false;
     }
 
-    private void setflag(Team player, int senseRadius, int currentFlag)throws GameActionException{
+    /**
+     * Handles a discovered grey EC.
+     * @return true if we have encountered a grey EC
+     * @param player The team of the robot player.
+     * @param senseRadius the robots sense radius
+     * @param currentFlag the current flag of the robot
+     * @throws GameActionException if anything here should cause one
+     */
+    public boolean handleGreyECEncounter(Team player, int senseRadius, int currentFlag)throws GameActionException{
+        boolean encounteredGreyEC = false;
         // If there's a grey EC near us and we arent cooldowned, set our flag and head
         // to base.
         if (currentFlag == RobotUtils.flags.NOTHING.ordinal()) {
@@ -247,10 +288,11 @@ public class Muckraker {
                     rc.setFlag(RobotUtils.flags.MUCKRAKER_FOUND_GREY_EC.ordinal());
                     turnStartedGreyECQuest = rc.getRoundNum();
                     goingToBase = true;
+                    encounteredGreyEC = true;
                 }
             }
-
         }
+        return encounteredGreyEC;
     }
 
     /**
@@ -262,19 +304,29 @@ public class Muckraker {
      * otherwise true, and muckraker prioritizes clustering around Enemy EC
      * @throws GameActionException if anything in here should cause one
      */
-    private boolean gaurdEnemyEC() throws GameActionException {
+    public boolean guardEnemyEC() throws GameActionException {
         //Dp we have backup? if so, raise flag
 
+        if(rc.getFlag(rc.getID()) == RobotUtils.flags.MUCKRAKER_GAURDING_ENEMY_EC.ordinal()) {
+            exposeUnits();
+            return true;
+        }
+
+        //Do we have backup? if so, raise flag
         int nearby_muckrakers = 0;
         MapLocation [] robotsNearby =  rc.detectNearbyRobots();
         for (RobotInfo allyMuckraker : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam())) {
             if (allyMuckraker.getType() == RobotType.MUCKRAKER) {
+                if (rc.getFlag(allyMuckraker.getID()) != RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal())
+                    continue;
                 nearby_muckrakers++;
             }
         }
 
-        if(nearby_muckrakers == 8) {
-            //find nearby enemy EC's
+        if(nearby_muckrakers >= MUCKRAKERS_NEEDED_TO_SWARM)
+            //find nearby enemy EC's with raised flag if there are enough muckrakers around
+//            RobotInfo [] enemyECs = new RobotInfo[]{};
+//            enemyECs = RobotUtils.senseRobotsWith(RobotType.ENLIGHTENMENT_CENTER, RobotUtils.flags.ANY, false);
             for (RobotInfo enemy_i : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
                 if (enemy_i.getType() == RobotType.ENLIGHTENMENT_CENTER) {
                     rc.setFlag(RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal());
@@ -292,7 +344,8 @@ public class Muckraker {
                             if (rc.canSenseLocation(temp)) {
                                 if (!rc.onTheMap(temp)) continue; //not on the map
                                 if (rc.getLocation() == temp) {//we are already on an empty spot
-                                    System.out.println("Defending Enemy EC!");
+                                    //System.out.println("Defending Enemy EC!");
+                                    rc.setFlag(RobotUtils.flags.MUCKRAKER_GAURDING_ENEMY_EC.ordinal());
                                     exposeUnits();//
                                     return true;
                                 }
@@ -309,7 +362,7 @@ public class Muckraker {
                                 exposeUnits();
                                 return true;
                             } else if (utils.tryMove(utils.getDirectionOfRandomAdjacentEmptyTile(nearbyAdjacentTiles.get(i)))) {
-                                System.out.println("moving towards enemy EC, excuse me");
+                               // System.out.println("moving towards enemy EC, excuse me");
                                 exposeUnits();
                                 return true;
                             }
@@ -317,13 +370,31 @@ public class Muckraker {
                     }
                 } else rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
             }
-        }
+        followEnemyECFlaggingMuckrakers();
+        utils.moveAwayFromOtherUnits();
+        return false;
+    }
 
-        //follow muckrakers with their flags up
+
+    public boolean followEnemyECFlaggingMuckrakers() throws GameActionException{
         for (RobotInfo allyMuckraker : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam())) {
             if (allyMuckraker.getType() == RobotType.MUCKRAKER && rc.getFlag(allyMuckraker.getID()) == RobotUtils.flags.MUCKRAKER_FOUND_ENEMY_EC.ordinal() ){
+//                if(rc.canMove())
                 if(utils.tryMove(rc.getLocation().directionTo(allyMuckraker.location))){
                     System.out.println("Following ally muckraker to Enemy EC!");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean avoidPolitician()throws GameActionException {
+        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
+            if (robot.getType() == RobotType.POLITICIAN) {
+                Direction enemy_loc = rc.getLocation().directionTo(robot.location);
+                if(rc.canMove(enemy_loc.opposite())) {
+                    utils.tryMove(enemy_loc.opposite());
                     return true;
                 }
             }
@@ -336,21 +407,67 @@ public class Muckraker {
         Team enemy = rc.getTeam().opponent();
         int senseRadius = rc.getType().sensorRadiusSquared;
         int actionRadius = rc.getType().actionRadiusSquared;
-
-//        MapLocation [] robotsNearby =  rc.detectNearbyRobots();
-
         for (RobotInfo robot : rc.senseNearbyRobots(actionRadius, enemy)) {
             if (robot.type.canBeExposed()) {
-
                 // It's a slanderer... go get them
                 if (rc.canExpose(robot.location)) {
                     //System.out.println("e x p o s e d");
                     rc.expose(robot.location);
-
                     return true;
                 }
             }
         }
         return false;
     }
+
+    /**
+     * This method will set the location of the home base
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfBase(MapLocation toSet) {
+        locationOfBase = toSet;
+        return true;
+    }
+
+    /**
+     * This method will set the location of the home base
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfGreyEC(MapLocation toSet) {
+        locationOfEC = toSet;
+        return true;
+    }
+
+    /**
+     * This method will set the type of the muckraker
+     * @param type the muckraker type to set
+     * @return true if set
+     */
+    public boolean setMuckrakerType(muckrakerTypes type) {
+        muckrakerType = type;
+        return true;
+    }
+
+    /**
+     * This method will set going to base boolean
+     * @param toSet the boolean to set
+     * @return true if set
+     */
+    public boolean setGoingToBase(boolean toSet) {
+        goingToBase = toSet;
+        return true;
+    }
+
+    /**
+     * This method will set the location of the found grey EC
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfEC(MapLocation toSet) {
+        locationOfEC = toSet;
+        return true;
+    }
+
 }

@@ -128,9 +128,10 @@ public class EnlightenmentCenter {
     /**
      * This contains the logic for actually building robots
      *
+     * @return true if a robot was built, false otherwise
      * @throws GameActionException if anything would cause one
      */
-    private void buildRobots() throws GameActionException {
+    public boolean buildRobots() throws GameActionException {
         Team playerTeam = rc.getTeam();
         Team enemyTeam = playerTeam.opponent();
 
@@ -199,8 +200,10 @@ public class EnlightenmentCenter {
         if(directionToPlace != null) {
             if(rc.canBuildRobot(robotTypeToBuild, directionToPlace, influenceToSpendOnUnit)) {
                 rc.buildRobot(robotTypeToBuild, directionToPlace, influenceToSpendOnUnit);
+                return true;
             }
         }
+        return false;
     }
 
     private void putNearbyRobotsIntoLists(Team playerTeam, Team enemyTeam, int senseRadius) {
