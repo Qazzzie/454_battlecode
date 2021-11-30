@@ -102,5 +102,4 @@ public class RobotUtilsTest {
 
         assertEquals(unitZ[0].influence , 10);
     }
-//>>>>>>> e98e7e08e415c9d9de86922f9c6264ebaecc186b
 }
