@@ -2,9 +2,11 @@ package SaZaPraYi;
 
 import battlecode.common.*;
 
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
+
 
 public class Muckraker {
     private static RobotController rc;
@@ -246,12 +248,15 @@ public class Muckraker {
         return false;
     }
 
-    private void back(int currentFlag)throws GameActionException{
+    public boolean back(int currentFlag)throws GameActionException{
         // If it's been long enough and we have a cooldown flag, go back to normal.
         if (currentFlag == RobotUtils.flags.MUCKRAKER_EC_COOLDOWN.ordinal()) {
-            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN)
+            if (rc.getRoundNum() > turnOfCooldown + EC_COOLDOWN) {
                 rc.setFlag(RobotUtils.flags.NOTHING.ordinal());
+                return true;
+            }
         }
+        return false;
     }
 
     /**
@@ -358,6 +363,7 @@ public class Muckraker {
         return false;
     }
 
+
     public boolean alreadyGuarding(RobotInfo [] enemyECs) throws GameActionException {
         ArrayList<MapLocation> nearbyAdjacentTiles = new ArrayList<>();
 
@@ -406,16 +412,50 @@ public class Muckraker {
     }
 
     public boolean avoidPolitician()throws GameActionException {
-        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
+
+        List<Integer> all_x = new ArrayList<Integer>();
+        List<Integer> all_y = new ArrayList<Integer>();
+
+        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent()))
+        {
             if (robot.getType() == RobotType.POLITICIAN) {
                 Direction enemy_loc = rc.getLocation().directionTo(robot.location);
                 if(utils.tryMove(enemy_loc.opposite())) {
                     return true;
                 }
+
             }
         }
+
+
+        if(all_x.size()!=0 && all_y.size()!=0){
+
+            int sum1=0,sum2=0;
+            for(int x : all_x){
+                sum1+=x;
+            }
+            for (int y: all_y){
+                sum2+=y;
+            }
+
+            int result_x = sum1/all_x.size();
+            int result_y = sum2/all_y.size();
+
+            MapLocation final_loc = new MapLocation(result_x,result_y);
+
+            Direction final_dir = rc.getLocation().directionTo(final_loc);
+
+            if (rc.canMove(final_dir.opposite())){
+                utils.tryMove(final_dir.opposite());
+                return  true;
+            }
+        }
+
+
         return false;
     }
+
+
 
     // expose nearby units
     public boolean exposeUnits() throws GameActionException{
@@ -461,4 +501,25 @@ public class Muckraker {
         muckrakerType = type;
         return true;
     }
+
+    /**
+     * This method will set going to base boolean
+     * @param toSet the boolean to set
+     * @return true if set
+     */
+    public boolean setGoingToBase(boolean toSet) {
+        goingToBase = toSet;
+        return true;
+    }
+
+    /**
+     * This method will set the location of the found grey EC
+     * @param toSet the location to set
+     * @return true if set
+     */
+    public boolean setLocationOfEC(MapLocation toSet) {
+        locationOfEC = toSet;
+        return true;
+    }
+
 }

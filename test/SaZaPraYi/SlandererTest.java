@@ -52,9 +52,36 @@ public class SlandererTest {
     }
 
     @Test
+    public void testavoidEnemyTryMove() throws GameActionException {
+        setupTests();
+        RobotInfo enemy = new RobotInfo(
+                100, Team.B, RobotType.MUCKRAKER,
+                10,10,
+                new MapLocation(5,5)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{enemy});
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        Mockito.when(utils.tryMove(Mockito.any())).thenReturn(true);
+        boolean result = s.avoidEnemy(Team.B);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testavoidEnemyFalse() throws GameActionException {
+        setupTests();
+
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getType()).thenReturn(RobotType.MUCKRAKER);
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = s.avoidEnemy(Team.B);
+        assertFalse(result);
+    }
+
+
+    @Test
     public void testavoidFlaggedSlanderer() throws GameActionException {
         setupTests();
-        //int flag = 3;
         RobotInfo flaggedSlanderer = new RobotInfo(
                 101, Team.A, RobotType.SLANDERER,
                 10,10,
@@ -68,5 +95,58 @@ public class SlandererTest {
         boolean result = s.avoidFlaggedSlanderer(Team.A);
         assertTrue(result);
     }
+
+    @Test
+    public void testavoidFlaggedSlandererTryMove() throws GameActionException {
+        setupTests();
+        RobotInfo flaggedSlanderer = new RobotInfo(
+                101, Team.A, RobotType.SLANDERER,
+                10,10,
+                new MapLocation(10,5)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{flaggedSlanderer});
+        Mockito.when(rc.getType()).thenReturn(RobotType.SLANDERER);
+        Mockito.when(rc.getFlag(flaggedSlanderer.ID))
+                .thenReturn(RobotUtils.flags.SLANDERER_SPOTTED_ENEMY.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        Mockito.when(utils.tryMove(Mockito.any())).thenReturn(true);
+        boolean result = s.avoidFlaggedSlanderer(Team.A);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testavoidFlaggedSlandererMoveAwayFromEC() throws GameActionException {
+        setupTests();
+        RobotInfo flaggedSlanderer = new RobotInfo(
+                101, Team.A, RobotType.SLANDERER,
+                10,10,
+                new MapLocation(10,5)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{flaggedSlanderer});
+        Mockito.when(rc.getType()).thenReturn(RobotType.SLANDERER);
+        Mockito.when(rc.getFlag(flaggedSlanderer.ID))
+                .thenReturn(RobotUtils.flags.NOTHING.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = s.avoidFlaggedSlanderer(Team.A);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testavoidFlaggedSlandererMoveAwayFromECFalse() throws GameActionException {
+        setupTests();
+        RobotInfo flaggedSlanderer = new RobotInfo(
+                101, Team.A, RobotType.SLANDERER,
+                10,10,
+                new MapLocation(10,5)
+        );
+        Mockito.when(rc.senseNearbyRobots(Mockito.anyInt(), Mockito.any())).thenReturn(new RobotInfo[]{});
+        Mockito.when(rc.getType()).thenReturn(RobotType.SLANDERER);
+        Mockito.when(rc.getFlag(flaggedSlanderer.ID))
+                .thenReturn(RobotUtils.flags.NOTHING.ordinal());
+        Mockito.when(rc.getLocation()).thenReturn(new MapLocation(0, 0));
+        boolean result = s.avoidFlaggedSlanderer(Team.A);
+        assertFalse(result);
+    }
+
 }
 
