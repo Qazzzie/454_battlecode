@@ -2,8 +2,8 @@ package SaZaPraYi;
 
 import battlecode.common.*;
 
-import java.util.ArrayList;
-import java.util.Random;
+import java.sql.Array;
+import java.util.*;
 
 public class Muckraker {
     private static RobotController rc;
@@ -390,17 +390,49 @@ public class Muckraker {
     }
 
     public boolean avoidPolitician()throws GameActionException {
-        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent())) {
+
+        List<Integer> all_x = new ArrayList<Integer>();
+        List<Integer> all_y = new ArrayList<Integer>();
+
+        for (RobotInfo robot : rc.senseNearbyRobots(rc.getType().sensorRadiusSquared, rc.getTeam().opponent()))
+        {
             if (robot.getType() == RobotType.POLITICIAN) {
-                Direction enemy_loc = rc.getLocation().directionTo(robot.location);
-                if(rc.canMove(enemy_loc.opposite())) {
-                    utils.tryMove(enemy_loc.opposite());
-                    return true;
-                }
+                MapLocation enemy_location = rc.getLocation();
+                all_x.add(enemy_location.x);
+                all_y.add(enemy_location.y);
+
             }
         }
+
+
+        if(all_x.size()!=0 && all_y.size()!=0){
+
+            int sum1=0,sum2=0;
+            for(int x : all_x){
+                sum1+=x;
+            }
+            for (int y: all_y){
+                sum2+=y;
+            }
+
+            int result_x = sum1/all_x.size();
+            int result_y = sum2/all_y.size();
+
+            MapLocation final_loc = new MapLocation(result_x,result_y);
+
+            Direction final_dir = rc.getLocation().directionTo(final_loc);
+
+            if (rc.canMove(final_dir.opposite())){
+                utils.tryMove(final_dir.opposite());
+                return  true;
+            }
+        }
+
+
         return false;
     }
+
+
 
     // expose nearby units
     public boolean exposeUnits() throws GameActionException{
