@@ -1,3 +1,5 @@
+Final presentation and standing: https://docs.google.com/presentation/d/1CQorfBRJxypIf2Gzf2cEWbltn49RL0sv/edit?usp=sharing&ouid=107271327944668707320&rtpof=true&sd=true
+
 [![Java CI with Gradle](https://github.com/Qazzzie/454_battlecode/actions/workflows/gradle.yml/badge.svg?branch=master)](https://github.com/Qazzzie/454_battlecode/actions/workflows/gradle.yml)
 
 # SaZaPraYi
